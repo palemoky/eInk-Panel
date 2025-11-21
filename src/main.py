@@ -58,36 +58,29 @@ def is_in_quiet_hours():
     Returns:
         tuple: (是否在静默时间段, 需要休眠的秒数)
     """
-    import datetime
+    import pendulum
     
-    now = datetime.datetime.now()
-    current_hour = now.hour
-    current_minute = now.minute
-    current_second = now.second
+    now = pendulum.now()
     
-    start = Config.QUIET_START_HOUR
-    end = Config.QUIET_END_HOUR
+    # 构建今天的开始和结束时间点
+    start_time = now.replace(hour=Config.QUIET_START_HOUR, minute=0, second=0, microsecond=0)
+    end_time = now.replace(hour=Config.QUIET_END_HOUR, minute=0, second=0, microsecond=0)
     
-    # 判断是否在静默时间段
-    in_quiet = False
-    if start < end:
-        in_quiet = start <= current_hour < end
-    else:
-        in_quiet = current_hour >= start or current_hour < end
-    
-    if not in_quiet:
-        return False, 0
-    
-    # 计算到静默时间段结束还需要多少秒
-    end_time = now.replace(hour=end, minute=0, second=0, microsecond=0)
-    
-    # 如果结束时间小于当前时间，说明结束时间是明天
-    if end_time <= now:
-        end_time += datetime.timedelta(days=1)
-    
-    sleep_seconds = (end_time - now).total_seconds()
-    
-    return True, int(sleep_seconds)
+    # 处理跨天的情况 (例如 23:00 到 06:00)
+    if Config.QUIET_START_HOUR > Config.QUIET_END_HOUR:
+        if now.hour >= Config.QUIET_START_HOUR:
+            # 现在是晚上，结束时间是明天
+            end_time = end_time.add(days=1)
+        elif now.hour < Config.QUIET_END_HOUR:
+            # 现在是凌晨，开始时间是昨天
+            start_time = start_time.subtract(days=1)
+            
+    # 判断是否在范围内
+    if start_time <= now < end_time:
+        sleep_seconds = (end_time - now).total_seconds()
+        return True, int(sleep_seconds)
+        
+    return False, 0
 
 
 def main():

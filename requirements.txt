@@ -1,6 +1,8 @@
-requests
+httpx
+tenacity
+pendulum
+pydantic-settings
 Pillow
-python-dotenv
 RPi.GPIO
 spidev
 pytest
