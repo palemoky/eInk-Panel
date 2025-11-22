@@ -49,7 +49,10 @@ COPY --from=builder /install /usr/local
 RUN useradd -m appuser
 
 # 复制源代码
-COPY src src/
+COPY src/ /app/src/
+# 调试：列出 /app 目录下的所有文件，确认结构
+RUN ls -R /app
+
 COPY requirements.txt .
 COPY .env.example .
 
