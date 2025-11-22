@@ -23,8 +23,10 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 
 COPY requirements.txt .
 # 安装依赖到 /install 目录，使用 pip 缓存加速
+# --prefer-binary: 优先使用预编译的 wheel，避免编译
+# --no-compile: 跳过 .pyc 编译，加快安装速度
 RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --prefix=/install -r requirements.txt
+    pip install --prefix=/install --prefer-binary --no-compile -r requirements.txt
 
 # Stage 2: Runtime
 FROM python:3.13-slim

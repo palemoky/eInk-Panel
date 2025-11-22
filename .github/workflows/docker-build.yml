@@ -6,7 +6,7 @@ on:
     tags: [ "v*.*.*" ]
   pull_request:
     branches: [ "main" ]
-  workflow_dispatch:  # 允许手动触发
+  workflow_dispatch: 
 
 env:
   IMAGE_NAME: eink-dashboard
@@ -97,32 +97,33 @@ jobs:
             type=sha,format=short
             type=raw,value=latest,enable={{is_default_branch}}
 
-      # 构建并推送到 Docker Hub
-      - name: Build and push to Docker Hub
+      # 构建并推送到两个 registry (一次构建，推送到多个目标)
+      - name: Build and push to Docker Hub and GHCR
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: ${{ steps.meta-dockerhub.outputs.tags }}
+          tags: |
+            ${{ steps.meta-dockerhub.outputs.tags }}
+            ${{ steps.meta-ghcr.outputs.tags }}
           labels: ${{ steps.meta-dockerhub.outputs.labels }}
-          # 同时构建 AMD64 (PC) 和 ARM64 (树莓派 3/4/5 64位) 和 ARMv7 (树莓派 3/4 32位)
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          # 同时构建 AMD64 (PC) 和 ARM64 (树莓派 3/4/5 64位)
+          # 注意: 移除了 arm/v7 以加快构建速度 (如需要可以添加回来)
+          platforms: linux/amd64,linux/arm64
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          # 启用 provenance 和 sbom 以提高安全性
+          provenance: false
+          sbom: false
 
-      # 构建并推送到 GitHub Container Registry
-      - name: Build and push to GHCR
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta-ghcr.outputs.tags }}
-          labels: ${{ steps.meta-ghcr.outputs.labels }}
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+  # 同步 README 到 Docker Hub (仅在 push 到 main 时)
+  sync-readme:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      # 同步 README 到 Docker Hub
       - name: Update Docker Hub Description
         uses: peter-evans/dockerhub-description@v4
         with:
