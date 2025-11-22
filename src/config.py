@@ -28,6 +28,8 @@ class Settings(BaseSettings):
     VPS_API_KEY: str = ""
     GITHUB_USERNAME: str = ""
     GITHUB_TOKEN: str = ""
+    GITHUB_STATS_MODE: str = "day"  # day, month, year
+    DOUBAN_ID: str = ""  # 豆瓣数字ID或个性域名
 
     # 路径配置
     FONT_PATH: str = str(BASE_DIR / "resources" / "Font.ttc")

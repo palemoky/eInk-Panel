@@ -43,13 +43,22 @@ class DataManager:
         """并发获取所有数据，失败时回退到缓存"""
         cached_data = self.load_cache()
         
+        # 检查是否是年终总结日 (12月31日)
+        import pendulum
+        now = pendulum.now(Config.TIMEZONE)
+        is_year_end = (now.month == 12 and now.day == 31)
+        
         # 定义任务列表
         tasks = {
             "weather": providers.get_weather(self.client),
             "github_commits": providers.get_github_commits(self.client),
             "vps_usage": providers.get_vps_info(self.client),
             "btc_price": providers.get_btc_data(self.client),
+            "douban": providers.get_douban_stats(self.client),
         }
+        
+        if is_year_end:
+            tasks["github_year_summary"] = providers.get_github_year_summary(self.client)
         
         results = {}
         keys = list(tasks.keys())
@@ -70,12 +79,15 @@ class DataManager:
                     elif key == "github_commits": val = 0
                     elif key == "vps_usage": val = 0
                     elif key == "btc_price": val = {"usd": "---", "usd_24h_change": 0}
+                    elif key == "douban": val = {"book": 0, "movie": 0, "music": 0}
+                    elif key == "github_year_summary": val = None
                 results[key] = val
             else:
                 results[key] = result
         
         # 总是计算周进度（不需要网络）
         results["week_progress"] = providers.get_week_progress()
+        results["is_year_end"] = is_year_end
         
         # 保存缓存
         self.save_cache(results)

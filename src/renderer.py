@@ -17,8 +17,9 @@ class Renderer:
             self.font_date_big = ImageFont.truetype(fp, 40)
             self.font_date_small = ImageFont.truetype(fp, 24)
             self.font_l = ImageFont.truetype(fp, 48)
+            self.font_xl = ImageFont.truetype(fp, 60)
         except IOError:
-            self.font_s = self.font_m = self.font_l = ImageFont.load_default()
+            self.font_s = self.font_m = self.font_l = self.font_xl = ImageFont.load_default()
             # Fallback mapping
             self.font_xs = self.font_time = self.font_date_big = (
                 self.font_date_small
