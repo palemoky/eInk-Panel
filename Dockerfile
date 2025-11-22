@@ -49,12 +49,7 @@ COPY --from=builder /install /usr/local
 RUN useradd -m appuser
 
 # 复制源代码
-COPY src/ /app/src/
-# 调试：列出 /app 目录下的所有文件，确认结构
-RUN ls -R /app
-
-COPY requirements.txt .
-COPY .env.example .
+COPY . .
 
 # 从 Downloader 阶段复制官方驱动到 src/lib/waveshare_epd (覆盖本地文件)
 # 注意：这会覆盖本地的 waveshare_epd 目录，确保使用官方最新驱动
