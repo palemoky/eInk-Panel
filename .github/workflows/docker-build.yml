@@ -9,9 +9,9 @@ on:
   workflow_dispatch: 
 
 env:
-  IMAGE_NAME: eInk-Panel
-  DOCKERHUB_IMAGE: palemoky/eInk-Panel
-  GHCR_IMAGE: ghcr.io/palemoky/eInk-Panel
+  IMAGE_NAME: eink-panel
+  DOCKERHUB_IMAGE: palemoky/eink-panel
+  GHCR_IMAGE: ghcr.io/palemoky/eink-panel
 
 jobs:
   test:
