@@ -107,6 +107,17 @@ jobs:
           provenance: false
           sbom: false
 
+      - name: Notify via Xiaomi Box
+        if: failure()
+        env:
+          MI_USER: ${{ secrets.MI_USER }}
+          MI_PASS: ${{ secrets.MI_PASS }}
+          MI_DID: ${{ secrets.MI_BOX_DID }}
+          NOTIFY_MSG: "警报，项目 ${{ github.repository }} 构建失败！"
+        run: |
+          pip install miservice aiohttp || true
+          python .github/scripts/notify_mibox.py
+
   # 同步 README 到 Docker Hub (在镜像构建成功后)
   sync-readme:
     runs-on: ubuntu-latest

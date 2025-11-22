@@ -27,3 +27,14 @@ jobs:
       - name: Run tests
         run: |
           PYTHONPATH=. pytest tests/
+
+      - name: Notify via Xiaomi Box
+        if: failure()
+        env:
+          MI_USER: ${{ secrets.MI_USER }}
+          MI_PASS: ${{ secrets.MI_PASS }}
+          MI_DID: ${{ secrets.MI_BOX_DID }}
+          NOTIFY_MSG: "警报，项目 ${{ github.repository }} 测试失败！"
+        run: |
+          pip install miservice aiohttp || true
+          python .github/scripts/notify_mibox.py
