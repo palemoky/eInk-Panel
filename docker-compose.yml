@@ -7,10 +7,11 @@ services:
     devices:
       - /dev/spidev0.0:/dev/spidev0.0 # SPI 接口
       - /dev/gpiomem:/dev/gpiomem
-      # - /dev/mem:/dev/mem # 可选：如果遇到权限问题，取消注释此行
+      - /dev/mem:/dev/mem # 可选：如果遇到权限问题，取消注释此行
     environment:
       - TZ=${TIMEZONE:-Asia/Shanghai}
     volumes:
       - ./.env:/app/.env:ro  # 只读挂载 .env
       - ./data:/app/data     # 挂载数据目录 (存放 cache.json 和 screenshot.bmp)
+      - /sys:/sys            # RPi.GPIO 需要访问 /sys/class/gpio 来设置中断 (Edge Detection)
     restart: unless-stopped

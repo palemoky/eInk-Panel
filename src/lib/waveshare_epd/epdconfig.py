@@ -57,7 +57,8 @@ class RaspberryPi:
         self.GPIO_DC_PIN = gpiozero.LED(self.DC_PIN)
         # self.GPIO_CS_PIN     = gpiozero.LED(self.CS_PIN)
         self.GPIO_PWR_PIN = gpiozero.LED(self.PWR_PIN)
-        self.GPIO_BUSY_PIN = gpiozero.Button(self.BUSY_PIN, pull_up=False)
+        # 使用 InputDevice 而非 Button，避免在 Docker 中设置边缘检测失败
+        self.GPIO_BUSY_PIN = gpiozero.InputDevice(self.BUSY_PIN, pull_up=None)
 
     def digital_write(self, pin, value):
         if pin == self.RST_PIN:
