@@ -30,7 +30,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     libjpeg62-turbo \
     libopenjp2-7 \
-    libtiff5 \
+    libtiff6 \
     && rm -rf /var/lib/apt/lists/*
 
 # 从 Builder 阶段复制安装好的包
