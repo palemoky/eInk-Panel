@@ -1,8 +1,8 @@
 version: "3"
 services:
   eink-panel:
-    build: .
-    container_name: eink_panel
+    image: palemoky/eink-panel:latest
+    container_name: eink-panel
     privileged: true # 必须，为了访问 GPIO
     devices:
       - /dev/spidev0.0:/dev/spidev0.0 # SPI 接口
@@ -14,4 +14,3 @@ services:
       - ./data_cache.json:/app/data_cache.json # 持久化缓存
       - ./screenshot.bmp:/app/screenshot.bmp # 查看截图
     restart: unless-stopped
-
