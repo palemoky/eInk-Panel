@@ -32,7 +32,6 @@ docker-compose up -d
 
 - `linux/amd64` - x86_64 PCs
 - `linux/arm64` - Raspberry Pi 3/4/5 (64-bit)
-- `linux/arm/v7` - Raspberry Pi 2/3/4 (32-bit)
 
 ## ✨ Features
 
