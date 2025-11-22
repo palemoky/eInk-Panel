@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1
+
 # Stage 0: Downloader
 FROM alpine/git AS downloader
 WORKDIR /tmp
@@ -10,7 +12,9 @@ FROM python:3.13-slim AS builder
 WORKDIR /app
 
 # 安装构建依赖 (如果需要编译 C 扩展，如 Pillow, RPi.GPIO)
-RUN apt-get update && apt-get install -y \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && apt-get install -y \
     gcc \
     libc-dev \
     libjpeg-dev \
@@ -18,8 +22,9 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-# 安装依赖到 /install 目录
-RUN pip install --prefix=/install -r requirements.txt
+# 安装依赖到 /install 目录，使用 pip 缓存加速
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --prefix=/install -r requirements.txt
 
 # Stage 2: Runtime
 FROM python:3.13-slim
@@ -27,7 +32,9 @@ FROM python:3.13-slim
 WORKDIR /app
 
 # 安装运行时依赖 (如 libjpeg, libopenjp2 用于 Pillow)
-RUN apt-get update && apt-get install -y \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && apt-get install -y \
     libjpeg62-turbo \
     libopenjp2-7 \
     libtiff6 \
@@ -38,9 +45,6 @@ COPY --from=builder /install /usr/local
 
 # 创建非 root 用户
 RUN useradd -m appuser
-
-# 复制源代码
-COPY . .
 
 # 从 Downloader 阶段复制官方驱动到 src/lib/waveshare_epd
 # 注意：我们需要先确保目标目录存在
@@ -53,6 +57,9 @@ COPY --from=downloader /tmp/e-Paper/RaspberryPi_JetsonNano/python/lib/waveshare_
 # 复制字体 (确保 resources 目录存在)
 RUN mkdir -p resources
 COPY --from=downloader /tmp/e-Paper/RaspberryPi_JetsonNano/python/pic/Font.ttc resources/
+
+# 复制源代码 (放在最后，因为这是最常变化的部分)
+COPY . .
 
 # 设置权限
 RUN chown -R appuser:appuser /app

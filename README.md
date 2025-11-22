@@ -1,8 +1,40 @@
 # E-Ink Dashboard
 
+[![Docker Hub](https://img.shields.io/docker/v/palemoky/eink-dashboard?label=Docker%20Hub&logo=docker)](https://hub.docker.com/r/palemoky/eink-dashboard)
+[![Docker Image Size](https://img.shields.io/docker/image-size/palemoky/eink-dashboard/latest)](https://hub.docker.com/r/palemoky/eink-dashboard)
+[![GitHub](https://img.shields.io/github/license/palemoky/eink-dashboard)](https://github.com/palemoky/eink-dashboard)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/palemoky/eink-dashboard/docker-build.yml?branch=main)](https://github.com/palemoky/eink-dashboard/actions)
+
 A personalized, asynchronous dashboard for Waveshare E-Ink displays, built with Python 3.13 and Docker.
 
-## Features
+## 🚀 Quick Start with Docker
+
+The easiest way to run is using Docker - it handles all dependencies and driver setup automatically.
+
+### Pull and Run
+
+```bash
+# Pull the latest image
+docker pull palemoky/eink-dashboard:latest
+
+# Or use GitHub Container Registry
+docker pull ghcr.io/palemoky/eink-dashboard:latest
+
+# Run with docker-compose (recommended)
+git clone https://github.com/palemoky/eink-dashboard.git
+cd eink-dashboard
+cp .env.example .env
+# Edit .env with your API keys
+docker-compose up -d
+```
+
+### Supported Platforms
+
+- `linux/amd64` - x86_64 PCs
+- `linux/arm64` - Raspberry Pi 3/4/5 (64-bit)
+- `linux/arm/v7` - Raspberry Pi 2/3/4 (32-bit)
+
+## ✨ Features
 
 *   **Information at a Glance**:
     *   Real-time Weather (OpenWeatherMap)
@@ -25,31 +57,13 @@ A personalized, asynchronous dashboard for Waveshare E-Ink displays, built with 
     *   **Auto-Update Drivers**: Docker build automatically pulls the latest drivers from the official Waveshare repository.
     *   **Robust**: Automatic retries for network requests and data caching.
 
-## Hardware Support
+## 🖥️ Hardware Support
 
 *   **Primary**: Waveshare 7.5inch E-Paper HAT (V2)
 *   **Other Models**: Configurable via `EPD_MODEL` env var (supports most models in the [official repo](https://github.com/waveshareteam/e-Paper)).
 *   **Platform**: Raspberry Pi (Zero/3/4/5) or any Linux board with SPI/GPIO.
 
-## Quick Start (Docker)
-
-The easiest way to run is using Docker. It handles all dependencies and driver setup.
-
-1.  **Clone & Configure**:
-    ```bash
-    git clone https://github.com/yourusername/eink-dashboard.git
-    cd eink-dashboard
-    cp .env.example .env
-    # Edit .env with your API keys and preferences
-    nano .env
-    ```
-
-2.  **Run**:
-    ```bash
-    docker-compose up -d --build
-    ```
-
-## Configuration (.env)
+## ⚙️ Configuration (.env)
 
 | Variable | Description | Default |
 | :--- | :--- | :--- |
@@ -61,8 +75,11 @@ The easiest way to run is using Docker. It handles all dependencies and driver s
 | `REFRESH_INTERVAL` | Refresh interval in seconds | `600` |
 | `QUIET_START_HOUR` | Start of quiet hours (24h) | `1` |
 | `QUIET_END_HOUR` | End of quiet hours (24h) | `6` |
+| `OPENWEATHER_API_KEY` | OpenWeatherMap API key | - |
+| `GITHUB_USERNAME` | GitHub username for contributions | - |
+| `GITHUB_TOKEN` | GitHub personal access token | - |
 
-## Local Development
+## 🛠️ Local Development
 
 1.  **Install Dependencies**:
     ```bash
@@ -78,10 +95,10 @@ The easiest way to run is using Docker. It handles all dependencies and driver s
 
 3.  **Run Tests**:
     ```bash
-    pytest tests/
+    PYTHONPATH=. pytest tests/
     ```
 
-## Project Structure
+## 📁 Project Structure
 
 *   `src/drivers/`: Driver adapter factory.
 *   `src/lib/waveshare_epd/`: Official drivers (populated during Docker build).
@@ -90,6 +107,12 @@ The easiest way to run is using Docker. It handles all dependencies and driver s
 *   `src/renderer.py`: Low-level drawing primitives.
 *   `src/data_manager.py`: Async data fetching and caching.
 
-## License
+## 📝 License
 
-MIT
+MIT License - Copyright (c) 2025 Palemoky
+
+## 🔗 Links
+
+- [GitHub Repository](https://github.com/palemoky/eink-dashboard)
+- [Docker Hub](https://hub.docker.com/r/palemoky/eink-dashboard)
+- [GitHub Packages](https://github.com/palemoky/eink-dashboard/pkgs/container/eink-dashboard)
