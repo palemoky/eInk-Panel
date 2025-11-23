@@ -40,8 +40,8 @@ jobs:
         env:
           MI_USER: ${{ secrets.MI_USER }}
           MI_PASS: ${{ secrets.MI_PASS }}
-          MI_DID: ${{ secrets.MI_BOX_DID }}
+          MI_BOX_DID: ${{ secrets.MI_BOX_DID }}
           NOTIFY_MSG: "警报，项目 ${{ github.repository }} 测试失败！"
         run: |
-          pip install miservice aiohttp || true
-          python .github/scripts/notify_mibox.py
+          pip install miservice aiohttp
+          python .github/scripts/notify_xiaomi_speaker.py
