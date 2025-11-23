@@ -10,6 +10,6 @@ notion-client>=2.0.0
 gspread>=5.0.0
 
 # Hardware dependencies (mocked in tests/CI)
-# RPi.GPIO
+RPi.GPIO
 gpiozero
 spidev
