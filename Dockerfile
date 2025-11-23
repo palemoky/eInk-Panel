@@ -22,21 +22,14 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# 安装 uv (使用官方安装脚本)
+# 安装 uv 并安装依赖
 ADD --chmod=755 https://astral.sh/uv/install.sh /install.sh
-RUN /install.sh && rm /install.sh
-ENV PATH="/root/.cargo/bin:$PATH"
-
-# Copy dependency files
 COPY pyproject.toml uv.lock ./
-
-# 使用 uv sync 安装依赖 (使用 uv.lock 确保可重现构建)
-# --frozen: 使用 uv.lock 而不重新解析依赖
-# --no-dev: 不安装开发依赖
-# --extra hardware: 安装硬件依赖 (RPi.GPIO, gpiozero, spidev)
-# --no-install-project: 不安装项目本身（只安装依赖）
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev --extra hardware --no-install-project
+    /install.sh && \
+    rm /install.sh && \
+    /root/.local/bin/uv export --frozen --no-dev --extra hardware --no-hashes --no-emit-project -o requirements.txt && \
+    /root/.local/bin/uv pip install --python /usr/local/bin/python3.14 --prefix=/install -r requirements.txt
 
 # Stage 2: Runtime
 FROM python:3.14-slim
