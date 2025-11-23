@@ -121,11 +121,23 @@ async def main():
 
                 logger.info(f"Refreshing at {current_time}")
 
-                # 1. 并发获取数据
-                data = await dm.fetch_all_data()
+                # 检查是否启用壁纸模式
+                if Config.WALLPAPER_MODE:
+                    from .wallpaper import WallpaperManager
 
-                # 2. 生成图像
-                image = layout.create_image(epd.width, epd.height, data)
+                    wallpaper_manager = WallpaperManager()
+                    wallpaper_name = Config.WALLPAPER_NAME if Config.WALLPAPER_NAME else None
+                    image = wallpaper_manager.create_wallpaper(
+                        epd.width, epd.height, wallpaper_name
+                    )
+                    logger.info(f"🎨 Wallpaper mode: {wallpaper_name or 'random'}")
+                else:
+                    # 正常模式：获取数据并生成图像
+                    # 1. 并发获取数据
+                    data = await dm.fetch_all_data()
+
+                    # 2. 生成图像
+                    image = layout.create_image(epd.width, epd.height, data)
 
                 if Config.IS_SCREENSHOT_MODE:
                     image.save(Config.DATA_DIR / "screenshot.bmp")

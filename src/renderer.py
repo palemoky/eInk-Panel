@@ -241,6 +241,14 @@ class Renderer:
                     self.draw_icon_heart(draw, center_x, icon_y, size=80)
                 case "lantern":
                     self.draw_icon_lantern(draw, center_x, icon_y, size=80)
+                case "rocket":
+                    self.draw_icon_rocket(draw, center_x, icon_y, size=80)
+                case "saturn":
+                    self.draw_icon_saturn(draw, center_x, icon_y, size=80)
+                case "earth":
+                    self.draw_icon_earth(draw, center_x, icon_y, size=80)
+                case "spaceship":
+                    self.draw_icon_spaceship(draw, center_x, icon_y, size=80)
                 case _:
                     self.draw_icon_star(draw, center_x, icon_y, size=80)
 
@@ -249,3 +257,94 @@ class Renderer:
 
         # 绘制消息
         self.draw_centered_text(draw, center_x, center_y + 80, message, self.font_m)
+
+    # --- Space Theme Icons ---
+
+    def draw_icon_rocket(self, draw, x, y, size=60):
+        """绘制火箭图标"""
+        s = size / 60.0
+        # 火箭主体
+        draw.polygon([(x, y - 25 * s), (x - 10 * s, y + 15 * s), (x + 10 * s, y + 15 * s)], fill=0)
+        # 窗口
+        draw.ellipse((x - 5 * s, y - 10 * s, x + 5 * s, y), outline=0, width=int(2 * s))
+        # 火焰
+        draw.polygon(
+            [
+                (x - 8 * s, y + 15 * s),
+                (x - 12 * s, y + 30 * s),
+                (x - 4 * s, y + 20 * s),
+            ],
+            fill=0,
+        )
+        draw.polygon(
+            [
+                (x + 8 * s, y + 15 * s),
+                (x + 12 * s, y + 30 * s),
+                (x + 4 * s, y + 20 * s),
+            ],
+            fill=0,
+        )
+        # 中间火焰
+        draw.polygon([(x, y + 15 * s), (x - 3 * s, y + 25 * s), (x + 3 * s, y + 25 * s)], fill=0)
+
+    def draw_icon_saturn(self, draw, x, y, size=60):
+        """绘制土星图标（带光环）"""
+        s = size / 60.0
+        # 行星主体
+        draw.ellipse((x - 15 * s, y - 15 * s, x + 15 * s, y + 15 * s), outline=0, width=int(2 * s))
+        # 光环（椭圆）
+        draw.ellipse((x - 25 * s, y - 8 * s, x + 25 * s, y + 8 * s), outline=0, width=int(2 * s))
+        # 擦除光环被行星遮挡的部分（用白色填充）
+        draw.ellipse((x - 14 * s, y - 14 * s, x + 14 * s, y + 14 * s), fill=255)
+        # 重新绘制行星轮廓
+        draw.ellipse((x - 15 * s, y - 15 * s, x + 15 * s, y + 15 * s), outline=0, width=int(2 * s))
+
+    def draw_icon_earth(self, draw, x, y, size=60):
+        """绘制地球图标"""
+        s = size / 60.0
+        # 地球主体
+        draw.ellipse((x - 18 * s, y - 18 * s, x + 18 * s, y + 18 * s), outline=0, width=int(2 * s))
+        # 大陆轮廓（简化版）
+        draw.ellipse((x - 8 * s, y - 10 * s, x + 2 * s, y), fill=0)
+        draw.ellipse((x + 3 * s, y - 5 * s, x + 12 * s, y + 5 * s), fill=0)
+        draw.ellipse((x - 10 * s, y + 3 * s, x, y + 13 * s), fill=0)
+
+    def draw_icon_spaceship(self, draw, x, y, size=60):
+        """绘制星舰图标（类似星际迷航）"""
+        s = size / 60.0
+        # 碟形主体
+        draw.ellipse((x - 20 * s, y - 8 * s, x + 20 * s, y + 8 * s), outline=0, width=int(2 * s))
+        # 指挥舱
+        draw.ellipse((x - 8 * s, y - 12 * s, x + 8 * s, y + 4 * s), outline=0, width=int(2 * s))
+        # 引擎舱（左）
+        draw.rectangle((x - 25 * s, y + 5 * s, x - 18 * s, y + 20 * s), outline=0, width=int(2 * s))
+        # 引擎舱（右）
+        draw.rectangle((x + 18 * s, y + 5 * s, x + 25 * s, y + 20 * s), outline=0, width=int(2 * s))
+        # 连接杆
+        draw.line((x - 22 * s, y + 5 * s, x - 22 * s, y), fill=0, width=int(2 * s))
+        draw.line((x + 22 * s, y + 5 * s, x + 22 * s, y), fill=0, width=int(2 * s))
+
+    def draw_icon_jupiter(self, draw, x, y, size=60):
+        """绘制木星图标（带条纹）"""
+        s = size / 60.0
+        # 行星主体
+        draw.ellipse((x - 20 * s, y - 20 * s, x + 20 * s, y + 20 * s), outline=0, width=int(2 * s))
+        # 条纹
+        for i in range(-2, 3):
+            y_offset = i * 8 * s
+            draw.line(
+                (x - 18 * s, y + y_offset, x + 18 * s, y + y_offset), fill=0, width=int(1 * s)
+            )
+        # 大红斑
+        draw.ellipse((x + 5 * s, y - 5 * s, x + 15 * s, y + 5 * s), outline=0, width=int(2 * s))
+
+    def draw_icon_moon(self, draw, x, y, size=60):
+        """绘制月球图标（带陨石坑）"""
+        s = size / 60.0
+        # 月球主体
+        draw.ellipse((x - 18 * s, y - 18 * s, x + 18 * s, y + 18 * s), outline=0, width=int(2 * s))
+        # 陨石坑
+        draw.ellipse((x - 8 * s, y - 10 * s, x - 2 * s, y - 4 * s), fill=0)
+        draw.ellipse((x + 3 * s, y - 8 * s, x + 8 * s, y - 3 * s), fill=0)
+        draw.ellipse((x - 5 * s, y + 2 * s, x + 2 * s, y + 9 * s), fill=0)
+        draw.ellipse((x + 8 * s, y + 5 * s, x + 13 * s, y + 10 * s), fill=0)

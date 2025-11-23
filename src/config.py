@@ -18,6 +18,11 @@ class Settings(BaseSettings):
     # 时区配置 (使用 IANA 时区名称，如 'Asia/Shanghai', 'America/New_York', 'Europe/London')
     TIMEZONE: str = "Asia/Shanghai"
 
+    # 壁纸模式配置
+    WALLPAPER_MODE: bool = False  # 是否启用壁纸模式
+    WALLPAPER_NAME: str = ""  # 壁纸名称，留空则随机选择
+    # 可选: solar_system, starship, earth_rise, saturn_rings, galaxy, moon_landing, mars_landscape, nebula
+
     # 个性化配置
     USER_NAME: str = "Palemoky"
     BIRTHDAY: str = ""  # 格式: "MM-DD", 例如 "11-22"
