@@ -71,12 +71,11 @@ class DashboardLayout:
         vps_data = data.get("vps_usage", 0)
         btc_data = data.get("btc_price", {})
         week_prog = data.get("week_progress", 0)
-        douban = data.get("douban", {"book": 0, "movie": 0, "music": 0})
 
         # 3. 绘制三大区域
         self._draw_header(draw, width, now, weather)
         self._draw_lists(draw)
-        self._draw_footer(draw, width, commits, vps_data, btc_data, week_prog, douban)
+        self._draw_footer(draw, width, commits, vps_data, btc_data, week_prog)
 
         return image
 
@@ -289,7 +288,7 @@ class DashboardLayout:
             width=2,
         )
 
-    def _draw_footer(self, draw, width, commits, vps_data, btc_data, week_prog, douban):
+    def _draw_footer(self, draw, width, commits, vps_data, btc_data, week_prog):
         """
         绘制底部区域：支持动态 Slot 分布
         """
@@ -308,63 +307,35 @@ class DashboardLayout:
         else:
             commit_label = "Commits (Day)"
 
-        # 定义底部组件
+        # 定义底部组件（移除豆瓣）
         footer_items = [
-            {"label": "Weekly", "value": week_prog, "type": "ring"},
-            {"label": commit_label, "value": str(commits), "type": "text"},
-            {"label": btc_label, "value": btc_val, "type": "text"},
+            {"type": "number", "value": commits, "label": commit_label},
+            {"type": "number", "value": f"{vps_data}%", "label": "VPS Usage"},
+            {"type": "text_small", "value": btc_val, "label": btc_label},
+            {"type": "number", "value": f"{week_prog}%", "label": "Week Progress"},
         ]
 
-        # 如果有豆瓣数据，显示豆瓣；否则显示 VPS
-        if Config.DOUBAN_ID and (douban["book"] > 0 or douban["movie"] > 0):
-            # 简单显示书/影
-            douban_val = f"B:{douban['book']} M:{douban['movie']}"
-            footer_items.append(
-                {"label": "Douban (Year)", "value": douban_val, "type": "text_small"}
-            )
-        else:
-            footer_items.append({"label": "VPS Data", "value": vps_data, "type": "ring"})
-
-        # 计算动态布局
-        content_width = width - 40
-        start_x = 20
+        # 计算动态布局参数
+        content_width = width - 20
+        start_x = 10
         slot_width = content_width / len(footer_items)
 
+        # 循环绘制组件
         for i, item in enumerate(footer_items):
             center_x = int(start_x + (i * slot_width) + (slot_width / 2))
 
-            # 绘制底部标签
+            # 绘制标签
             r.draw_centered_text(
                 draw,
                 center_x,
                 self.FOOTER_LABEL_Y,
                 item["label"],
                 font=r.font_s,
-                align_y_center=False,
+                align_y_center=True,
             )
 
-            # 绘制主要内容
-            if item["type"] == "ring":
-                radius = 32
-                # 画圆环
-                r.draw_progress_ring(
-                    draw,
-                    center_x,
-                    self.FOOTER_CENTER_Y,
-                    radius,
-                    item["value"],
-                    thickness=6,
-                )
-                # 画圆环中间百分比 (小字体)
-                r.draw_centered_text(
-                    draw,
-                    center_x,
-                    self.FOOTER_CENTER_Y,
-                    f"{item['value']}%",
-                    font=r.font_xs,
-                    align_y_center=True,
-                )
-            elif item["type"] == "text_small":
+            # 根据类型绘制值
+            if item["type"] == "text_small":
                 r.draw_centered_text(
                     draw,
                     center_x,

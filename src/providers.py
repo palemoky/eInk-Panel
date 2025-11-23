@@ -191,67 +191,6 @@ async def get_github_year_summary(client: httpx.AsyncClient):
         return None
 
 
-@retry_strategy
-async def get_douban_stats(client: httpx.AsyncClient):
-    """爬取豆瓣主页获取书影音数据"""
-    if not Config.DOUBAN_ID:
-        return None
-
-    url = f"https://m.douban.com/people/{Config.DOUBAN_ID}/"
-    headers = {
-        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1"
-    }
-
-    try:
-        res = await client.get(url, headers=headers, timeout=10, follow_redirects=True)
-        res.raise_for_status()
-        html = res.text
-
-        # 简单的字符串解析 (避免引入 BeautifulSoup 增加镜像体积)
-        # 寻找类似 "看过(123)" "读过(456)" "听过(789)" 的模式
-        # 移动版页面结构可能不同，这里假设抓取的是移动版或桌面版
-        # 实际上移动版 m.douban.com/people/xxx 结构比较简单
-
-        def extract_count(keyword, text):
-            try:
-                # 粗略匹配： >看过(<span>123</span>) 或 >看过 123<
-                # 移动版通常是: <span class="info">看过 <strong>123</strong></span>
-                # 或者桌面版: <a href="...">看过123</a>
-
-                # 尝试匹配移动版模式
-                if keyword in text:
-                    # 这是一个非常粗略的实现，实际可能需要调整
-                    # 寻找 keyword 后面的数字
-                    part = text.split(keyword)[1]
-                    # 截取接下来的一段字符尝试提取数字
-                    import re
-
-                    match = re.search(r"(\d+)", part[:50])
-                    if match:
-                        return int(match.group(1))
-            except Exception:
-                pass
-            return 0
-
-        # 豆瓣移动版关键词
-        # 电影: 看过
-        # 图书: 读过
-        # 音乐: 听过
-
-        movies = extract_count("看过", html)
-        books = extract_count("读过", html)
-        music = extract_count("听过", html)
-
-        logger.info(f"Douban stats: Book:{books}, Movie:{movies}, Music:{music}")
-
-        return {"book": books, "movie": movies, "music": music}
-
-    except Exception as e:
-        logger.error(f"Douban API Error: {e}")
-        return None
-
-
-@retry_strategy
 async def get_vps_info(client: httpx.AsyncClient):
     if not Config.VPS_API_KEY:
         return 0
