@@ -26,10 +26,11 @@ jobs:
         uses: astral-sh/setup-uv@v4
         with:
           enable-cache: true
+          cache-suffix: v1
 
       - name: Install dependencies
         run: |
-          uv sync --frozen --all-extras
+          uv sync --frozen --extra dev
 
       - name: Run tests
         run: |
@@ -106,7 +107,7 @@ jobs:
           # 注意: 移除了 arm/v7 以加快构建速度 (如需要可以添加回来)
           platforms: linux/amd64,linux/arm64
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: type=gha,mode=min
           # 启用 provenance 和 sbom 以提高安全性
           provenance: false
           sbom: false
