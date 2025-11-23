@@ -53,7 +53,7 @@ class DataManager:
                 weather_task = tg.create_task(providers.get_weather(client))
                 commits_task = tg.create_task(providers.get_github_commits(client))
                 vps_task = tg.create_task(providers.get_vps_info(client))
-                btc_task = tg.create_task(providers.get_btc_price(client))
+                btc_task = tg.create_task(providers.get_btc_data(client))
 
             # 获取结果（带缓存回退）
             weather = self._get_with_cache_fallback(weather_task, "weather", {})
