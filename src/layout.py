@@ -161,14 +161,18 @@ class DashboardLayout:
                 if desc == "Thunderstorm":
                     desc = "Storm"
 
-                # 使用 r.draw_text 并居中对齐
-                r.draw_text(
-                    draw,
-                    center_x + 5,
-                    icon_y,
+                # 使用 draw.text 并居中对齐
+                try:
+                    bbox = draw.textbbox((0, 0), desc, font=r.font_s)
+                    text_h = bbox[3] - bbox[1]
+                except AttributeError:
+                    _, text_h = draw.textsize(desc, font=r.font_s)
+
+                draw.text(
+                    (center_x + 5, icon_y - text_h // 2 - 3),
                     desc,
                     font=r.font_s,
-                    align_y_center=True,
+                    fill=0,
                 )
 
             case "date":
