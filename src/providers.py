@@ -63,18 +63,22 @@ async def get_github_commits(client: httpx.AsyncClient):
     mode = Config.GITHUB_STATS_MODE.lower()
     if mode == "year":
         start_time = now_local.start_of("year")
+        end_time = now_local.end_of("year")
     elif mode == "month":
         start_time = now_local.start_of("month")
+        end_time = now_local.end_of("month")
     else:  # default to day
         start_time = now_local.start_of("day")
+        end_time = now_local.end_of("day")
 
     # 转换为 UTC 时间用于 GitHub API
     start_utc_iso = start_time.in_timezone("UTC").to_iso8601_string()
+    end_utc_iso = end_time.in_timezone("UTC").to_iso8601_string()
 
     query = """
-    query($username: String!, $from: DateTime!) {
+    query($username: String!, $from: DateTime!, $to: DateTime!) {
       user(login: $username) {
-        contributionsCollection(from: $from) {
+        contributionsCollection(from: $from, to: $to) {
           totalCommitContributions
           totalIssueContributions
           totalPullRequestContributions
@@ -84,7 +88,7 @@ async def get_github_commits(client: httpx.AsyncClient):
     }
     """
 
-    variables = {"username": Config.GITHUB_USERNAME, "from": start_utc_iso}
+    variables = {"username": Config.GITHUB_USERNAME, "from": start_utc_iso, "to": end_utc_iso}
 
     try:
         res = await client.post(
@@ -106,7 +110,9 @@ async def get_github_commits(client: httpx.AsyncClient):
 
         total = commits + issues + prs + reviews
 
-        logger.info(f"GitHub contributions ({mode}): {total}")
+        logger.info(
+            f"GitHub contributions ({mode}): {total} (commits:{commits}, issues:{issues}, prs:{prs}, reviews:{reviews})"
+        )
         return total
 
     except Exception as e:
