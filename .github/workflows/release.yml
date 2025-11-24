@@ -6,9 +6,16 @@ on:
       - 'v*'
   workflow_dispatch:
 
+# Prevent multiple releases from running simultaneously
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 env:
   DOCKERHUB_IMAGE: palemoky/eink-panel
   GHCR_IMAGE: ghcr.io/palemoky/eink-panel
+  PACKAGE_NAME: eink-panel
+  OWNER: palemoky
 
 jobs:
   # Run tests before building and publishing
@@ -28,6 +35,16 @@ jobs:
         with:
           enable-cache: true
           cache-suffix: v1
+
+      - name: Cache Python dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/uv
+            .venv
+          key: ${{ runner.os }}-python-${{ hashFiles('**/uv.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-python-
 
       - name: Install dependencies
         run: |
@@ -49,21 +66,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Set up QEMU for multi-architecture builds (ARM64 for Raspberry Pi)
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Login to Docker Hub
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Login to GitHub Container Registry
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -71,173 +85,54 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Generate Docker metadata (tags and labels)
-      - name: Extract metadata for Docker Hub
-        id: meta-dockerhub
+      - name: Extract metadata (tags, labels)
+        id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.DOCKERHUB_IMAGE }}
+          images: |
+            ${{ env.DOCKERHUB_IMAGE }}
+            ${{ env.GHCR_IMAGE }}
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
-            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Extract metadata for GHCR
-        id: meta-ghcr
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.GHCR_IMAGE }}
-          tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
-
-      # Build and push to both Docker Hub and GHCR in one step
-      - name: Build and push to Docker Hub and GHCR
-        uses: docker/build-push-action@v5
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
         with:
           context: .
-          push: true
-          tags: |
-            ${{ steps.meta-dockerhub.outputs.tags }}
-            ${{ steps.meta-ghcr.outputs.tags }}
-          labels: ${{ steps.meta-dockerhub.outputs.labels }}
-          # Multi-platform build: AMD64 (PC) and ARM64 (Raspberry Pi 3/4/5 64-bit)
           platforms: linux/amd64,linux/arm64
-          # Docker cache disabled - UV cache already speeds up dependency installation
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # Disable provenance and SBOM to avoid extra manifest layers
           # Avoids wasteful buildkit-blob-* cache files with low hit rate
           provenance: false
           sbom: false
 
-      # Clean up old alpha/beta/rc images (keep only the latest 2 versions)
+      # Clean up old pre-release images (only for alpha/beta/rc releases)
       - name: Clean up old pre-release images
         if: contains(github.ref, 'alpha') || contains(github.ref, 'beta') || contains(github.ref, 'rc')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "Cleaning up old pre-release images..."
+          chmod +x .github/scripts/cleanup-ghcr-prerelease.sh
+          .github/scripts/cleanup-ghcr-prerelease.sh "${{ env.PACKAGE_NAME }}" "${{ env.OWNER }}"
           
-          # Clean up GHCR old images (keep latest 2 pre-release versions)
-          PACKAGE_NAME="${{ github.event.repository.name }}"
-          OWNER="${{ github.repository_owner }}"
-          
-          echo "Fetching GHCR package versions for ${OWNER}/${PACKAGE_NAME}..."
-          
-          # Try org endpoint first, fall back to user endpoint
-          # Get all versions with pre-release tags, sorted by created_at (newest first)
-          VERSIONS=$(gh api \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "/orgs/${OWNER}/packages/container/${PACKAGE_NAME}/versions?per_page=100" \
-            --jq '[.[] | select(.metadata.container.tags | length > 0) | select(.metadata.container.tags[] | test("alpha|beta|rc"))] | sort_by(.created_at) | reverse | .[2:] | .[] | {id: .id, tags: .metadata.container.tags, created_at: .created_at}' \
-            2>/dev/null || \
-          gh api \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "/users/${OWNER}/packages/container/${PACKAGE_NAME}/versions?per_page=100" \
-            --jq '[.[] | select(.metadata.container.tags | length > 0) | select(.metadata.container.tags[] | test("alpha|beta|rc"))] | sort_by(.created_at) | reverse | .[2:] | .[] | {id: .id, tags: .metadata.container.tags, created_at: .created_at}')
-          
-          # Get version IDs to delete (skip the latest 2)
-          VERSION_IDS=$(echo "$VERSIONS" | jq -r '.id')
-          
-          if [ -n "$VERSION_IDS" ]; then
-            echo "Deleting old pre-release versions (keeping latest 2)..."
-            echo "$VERSION_IDS" | while read version_id; do
-              # Try org endpoint first, fall back to user endpoint
-              gh api \
-                --method DELETE \
-                -H "Accept: application/vnd.github+json" \
-                -H "X-GitHub-Api-Version: 2022-11-28" \
-                "/orgs/${OWNER}/packages/container/${PACKAGE_NAME}/versions/${version_id}" \
-                2>/dev/null && echo "✓ Deleted version ID: $version_id" || \
-              gh api \
-                --method DELETE \
-                -H "Accept: application/vnd.github+json" \
-                -H "X-GitHub-Api-Version: 2022-11-28" \
-                "/users/${OWNER}/packages/container/${PACKAGE_NAME}/versions/${version_id}" \
-                && echo "✓ Deleted version ID: $version_id" || \
-                echo "✗ Failed to delete version ID: $version_id"
-            done
-          else
-            echo "No old pre-release versions to delete (keeping latest 2)"
-          fi
-          
-          # Clean up Docker Hub old images (keep latest 2 alpha versions)
-          echo "Cleaning up Docker Hub pre-release images..."
-          
-          # Get Docker Hub token
-          HUB_TOKEN=$(curl -s -H "Content-Type: application/json" -X POST \
-            -d '{"username": "${{ secrets.DOCKERHUB_USERNAME }}", "password": "${{ secrets.DOCKERHUB_TOKEN }}"}' \
-            https://hub.docker.com/v2/users/login/ | jq -r .token)
-          
-          # Get all tags
-          REPO_NAME="${{ env.DOCKERHUB_IMAGE }}"
-          TAGS=$(curl -s -H "Authorization: JWT ${HUB_TOKEN}" \
-            "https://hub.docker.com/v2/repositories/${REPO_NAME}/tags/?page_size=100" \
-            | jq -r '.results[] | select(.name | test("alpha|beta|rc")) | .name' \
-            | sort -V)
-          
-          # Keep latest 2, delete others
-          OLD_TAGS=$(echo "$TAGS" | head -n -2)
-          
-          if [ -n "$OLD_TAGS" ]; then
-            echo "Deleting old tags: $OLD_TAGS"
-            echo "$OLD_TAGS" | while read tag; do
-              curl -X DELETE \
-                -H "Authorization: JWT ${HUB_TOKEN}" \
-                "https://hub.docker.com/v2/repositories/${REPO_NAME}/tags/${tag}/" \
-                && echo "Deleted tag: $tag" \
-                || echo "Failed to delete tag: $tag"
-            done
-          else
-            echo "No old Docker Hub tags to clean"
-          fi
+          chmod +x .github/scripts/cleanup-dockerhub.sh
+          .github/scripts/cleanup-dockerhub.sh \
+            "${{ secrets.DOCKERHUB_USERNAME }}" \
+            "${{ secrets.DOCKERHUB_TOKEN }}" \
+            "${{ env.DOCKERHUB_IMAGE }}"
 
       # Clean up untagged GHCR images (runs on every release)
       - name: Clean up untagged GHCR images
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "Cleaning up untagged GHCR images (SHA256 digests)..."
-          
-          PACKAGE_NAME="${{ github.event.repository.name }}"
-          OWNER="${{ github.repository_owner }}"
-          
-          # Get all untagged versions (try org first, fall back to user)
-          UNTAGGED_IDS=$(gh api \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "/orgs/${OWNER}/packages/container/${PACKAGE_NAME}/versions?per_page=100" \
-            --jq '.[] | select(.metadata.container.tags | length == 0) | .id' \
-            2>/dev/null || \
-          gh api \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "/users/${OWNER}/packages/container/${PACKAGE_NAME}/versions?per_page=100" \
-            --jq '.[] | select(.metadata.container.tags | length == 0) | .id')
-          
-          if [ -n "$UNTAGGED_IDS" ]; then
-            echo "Found $(echo "$UNTAGGED_IDS" | wc -l) untagged images to delete"
-            echo "$UNTAGGED_IDS" | while read version_id; do
-              gh api \
-                --method DELETE \
-                -H "Accept: application/vnd.github+json" \
-                -H "X-GitHub-Api-Version: 2022-11-28" \
-                "/orgs/${OWNER}/packages/container/${PACKAGE_NAME}/versions/${version_id}" \
-                2>/dev/null && echo "✓ Deleted untagged SHA256: $version_id" || \
-              gh api \
-                --method DELETE \
-                -H "Accept: application/vnd.github+json" \
-                -H "X-GitHub-Api-Version: 2022-11-28" \
-                "/users/${OWNER}/packages/container/${PACKAGE_NAME}/versions/${version_id}" \
-                && echo "✓ Deleted untagged SHA256: $version_id" || \
-                echo "✗ Failed to delete untagged SHA256: $version_id"
-            done
-          else
-            echo "No untagged images to delete"
-          fi
+          chmod +x .github/scripts/cleanup-ghcr-untagged.sh
+          .github/scripts/cleanup-ghcr-untagged.sh "${{ env.PACKAGE_NAME }}" "${{ env.OWNER }}"
 
       # Notify on failure via Xiaomi Speaker
       - name: Notify via Xiaomi Speaker
