@@ -107,7 +107,8 @@ jobs:
           # 注意: 移除了 arm/v7 以加快构建速度 (如需要可以添加回来)
           platforms: linux/amd64,linux/arm64
           cache-from: type=gha
-          cache-to: type=gha,mode=min
+          # 仅在 main 分支写入缓存（减少缓存使用，PR 仍可读取）
+          cache-to: ${{ github.ref == 'refs/heads/main' && 'type=gha,mode=min' || '' }}
           # 启用 provenance 和 sbom 以提高安全性
           provenance: false
           sbom: false
