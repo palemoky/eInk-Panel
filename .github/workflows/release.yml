@@ -117,19 +117,59 @@ jobs:
         run: |
           echo "Cleaning up old pre-release images..."
           
-          # Clean up GHCR old images (keep latest 2 alpha versions)
-          gh api \
+          # Clean up GHCR old images (keep latest 2 pre-release versions)
+          PACKAGE_NAME="${{ github.event.repository.name }}"
+          OWNER="${{ github.repository_owner }}"
+          
+          echo "Fetching GHCR package versions..."
+          
+          # Get all versions with pre-release tags
+          VERSIONS=$(gh api \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            /user/packages/container/${{ github.event.repository.name }}/versions \
-            --jq '.[] | select(.metadata.container.tags[] | contains("alpha") or contains("beta") or contains("rc")) | .id' \
-            | tail -n +3 \
-            | xargs -I {} gh api \
-              --method DELETE \
-              -H "Accept: application/vnd.github+json" \
-              -H "X-GitHub-Api-Version: 2022-11-28" \
-              /user/packages/container/${{ github.event.repository.name }}/versions/{} \
-            || echo "No old pre-release images to clean"
+            "/users/${OWNER}/packages/container/${PACKAGE_NAME}/versions" \
+            --jq '.[] | select(.metadata.container.tags | length > 0) | select(.metadata.container.tags[] | test("alpha|beta|rc")) | {id: .id, tags: .metadata.container.tags}')
+          
+          # Get version IDs, skip the latest 2
+          VERSION_IDS=$(echo "$VERSIONS" | jq -r '.id' | tail -n +3)
+          
+          if [ -n "$VERSION_IDS" ]; then
+            echo "Deleting old pre-release versions..."
+            echo "$VERSION_IDS" | while read version_id; do
+              gh api \
+                --method DELETE \
+                -H "Accept: application/vnd.github+json" \
+                -H "X-GitHub-Api-Version: 2022-11-28" \
+                "/users/${OWNER}/packages/container/${PACKAGE_NAME}/versions/${version_id}" \
+                && echo "Deleted version ID: $version_id" \
+                || echo "Failed to delete version ID: $version_id"
+            done
+          else
+            echo "No old pre-release versions to delete"
+          fi
+          
+          # Clean up untagged images (SHA256 versions without tags)
+          echo "Cleaning up untagged GHCR images..."
+          UNTAGGED_IDS=$(gh api \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "/users/${OWNER}/packages/container/${PACKAGE_NAME}/versions" \
+            --jq '.[] | select(.metadata.container.tags | length == 0) | .id')
+          
+          if [ -n "$UNTAGGED_IDS" ]; then
+            echo "Deleting untagged images..."
+            echo "$UNTAGGED_IDS" | while read version_id; do
+              gh api \
+                --method DELETE \
+                -H "Accept: application/vnd.github+json" \
+                -H "X-GitHub-Api-Version: 2022-11-28" \
+                "/users/${OWNER}/packages/container/${PACKAGE_NAME}/versions/${version_id}" \
+                && echo "Deleted untagged version: $version_id" \
+                || echo "Failed to delete untagged version: $version_id"
+            done
+          else
+            echo "No untagged images to delete"
+          fi
           
           # Clean up Docker Hub old images (keep latest 2 alpha versions)
           echo "Cleaning up Docker Hub pre-release images..."
