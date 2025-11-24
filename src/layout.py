@@ -197,7 +197,7 @@ class DashboardLayout:
                     center_x,
                     top_y + 35,
                     data.strftime("%H:%M"),
-                    font=r.font_time,
+                    font=r.font_value,
                     align_y_center=False,
                 )
 
@@ -208,7 +208,7 @@ class DashboardLayout:
                     center_x,
                     top_y,
                     Config.GREETING_LABEL,
-                    font=r.font_s,
+                    font=r.font_m,
                     align_y_center=False,
                 )
                 # 第二行：值（与其他组件第二行对齐）
@@ -217,7 +217,7 @@ class DashboardLayout:
                     center_x,
                     top_y + 35,
                     Config.GREETING_TEXT,
-                    font=r.font_time,
+                    font=r.font_value,
                     align_y_center=False,
                 )
 
@@ -237,7 +237,7 @@ class DashboardLayout:
                     center_x,
                     top_y + 35,
                     item_data["value"],
-                    font=r.font_time,
+                    font=r.font_value,
                     align_y_center=False,
                 )
 

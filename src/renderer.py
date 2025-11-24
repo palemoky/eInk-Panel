@@ -15,7 +15,7 @@ class Renderer:
             self.font_xs = ImageFont.truetype(fp, 18)
             self.font_s = ImageFont.truetype(fp, 24)
             self.font_m = ImageFont.truetype(fp, 28)
-            self.font_time = ImageFont.truetype(fp, 32)
+            self.font_value = ImageFont.truetype(fp, 32)
             self.font_date_big = ImageFont.truetype(fp, 40)
             self.font_date_small = ImageFont.truetype(fp, 24)
             self.font_l = ImageFont.truetype(fp, 48)
@@ -23,7 +23,7 @@ class Renderer:
         except IOError:
             self.font_s = self.font_m = self.font_l = self.font_xl = ImageFont.load_default()
             # Fallback mapping
-            self.font_xs = self.font_time = self.font_date_big = self.font_date_small = self.font_s
+            self.font_xs = self.font_value = self.font_date_big = self.font_date_small = self.font_s
 
     def draw_centered_text(self, draw, x, y, text, font, fill=0, align_y_center=True):
         try:
