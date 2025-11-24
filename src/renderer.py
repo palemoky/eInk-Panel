@@ -75,6 +75,61 @@ class Renderer:
 
     # --- Icons (Scaled) ---
 
+    def draw_weather_icon(self, draw, x, y, icon_name, size=30):
+        """
+        绘制天气图标（优先从文件加载，失败则使用代码绘制）
+
+        Args:
+            draw: PIL ImageDraw 对象
+            x, y: 图标中心坐标
+            icon_name: 图标名称 (sun, rain, snow, thunder, cloud)
+            size: 图标大小
+
+        Returns:
+            bool: 是否成功从文件加载
+        """
+        from PIL import Image
+
+        # 尝试从文件加载
+        from .config import BASE_DIR
+
+        icon_path = BASE_DIR / "resources" / "icons" / "weather" / f"{icon_name}.png"
+
+        if icon_path.exists():
+            try:
+                # 加载图标
+                icon = Image.open(icon_path)
+                # 转换为黑白
+                icon = icon.convert("1")
+                # 调整大小
+                icon = icon.resize((size, size), Image.Resampling.LANCZOS)
+                # 粘贴到画布（x, y 是中心点，需要调整到左上角）
+                paste_x = int(x - size // 2)
+                paste_y = int(y - size // 2)
+                draw._image.paste(icon, (paste_x, paste_y))
+                return True
+            except Exception as e:
+                # 如果加载失败，回退到代码绘制
+                import logging
+
+                logging.warning(f"Failed to load icon {icon_path}: {e}, using fallback drawing")
+
+        # 回退：使用代码绘制
+        match icon_name:
+            case "sun":
+                self.draw_icon_sun(draw, x, y, size)
+            case "rain":
+                self.draw_icon_rain(draw, x, y, size)
+            case "snow":
+                self.draw_icon_snow(draw, x, y, size)
+            case "thunder":
+                self.draw_icon_thunder(draw, x, y, size)
+            case "cloud" | _:
+                self.draw_icon_cloud(draw, x, y, size)
+        return False
+
+    # --- Weather Icons (Fallback Drawing) ---
+
     def draw_icon_sun(self, draw, x, y, size=20):
         r = size // 3
         draw.ellipse((x - r, y - r, x + r, y + r), outline=0, width=2)

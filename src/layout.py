@@ -135,21 +135,21 @@ class DashboardLayout:
 
                 # 根据天气状态选择图标
                 icon_x = center_x + self.WEATHER_ICON_OFFSET_X
-
                 icon_size = self.WEATHER_ICON_SIZE
 
-                match w_main:
-                    case _ if "Clear" in w_main or "Sun" in w_main:
-                        r.draw_icon_sun(draw, icon_x, icon_y, size=icon_size)
-                    case _ if "Rain" in w_main or "Drizzle" in w_main:
-                        r.draw_icon_rain(draw, icon_x, icon_y, size=icon_size)
-                    case _ if "Snow" in w_main:
-                        r.draw_icon_snow(draw, icon_x, icon_y, size=icon_size)
-                    case _ if "Thunder" in w_main:
-                        r.draw_icon_thunder(draw, icon_x, icon_y, size=icon_size)
-                    case _:
-                        # 默认 clouds
-                        r.draw_icon_cloud(draw, icon_x, icon_y, size=icon_size)
+                # 确定图标名称
+                icon_name = "cloud"  # 默认
+                if "Clear" in w_main or "Sun" in w_main:
+                    icon_name = "sun"
+                elif "Rain" in w_main or "Drizzle" in w_main:
+                    icon_name = "rain"
+                elif "Snow" in w_main:
+                    icon_name = "snow"
+                elif "Thunder" in w_main:
+                    icon_name = "thunder"
+
+                # 使用统一的图标方法（优先文件，回退代码绘制）
+                r.draw_weather_icon(draw, icon_x, icon_y, icon_name, size=icon_size)
 
                 desc = data["desc"]
                 if desc == "Clouds":
