@@ -165,7 +165,7 @@ class DashboardLayout:
                 r.draw_centered_text(
                     draw,
                     center_x,
-                    top_y + 5,
+                    top_y,
                     data.strftime("%a, %d"),
                     font=r.font_date_big,
                     align_y_center=False,
