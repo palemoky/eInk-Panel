@@ -11,7 +11,6 @@ sys.path.insert(0, str(project_root))
 
 from src.config import Config  # noqa: E402
 from src.layout import DashboardLayout  # noqa: E402
-from src.wallpaper import WallpaperManager  # noqa: E402
 
 
 def generate_screenshot(
@@ -117,7 +116,7 @@ def main():
         {
             "name": "mid_autumn_festival",
             "data": mid_autumn_festival_data,
-            "date": "2025-09-29",  # 2025年中秋节
+            "date": "2025-10-06",  # 2025年中秋节（农历八月十五）
             "description": "Mid-Autumn Festival",
         }
     )
@@ -237,108 +236,6 @@ def main():
 
     print(f"\n✨ Generated {len(generated)} screenshots!")
     print(f"📁 Location: {Config.DATA_DIR / 'screenshots'}")
-
-    # 生成壁纸
-    print("\n" + "=" * 50)
-    print("\n🎨 Generating Wallpapers\n")
-    print("=" * 50)
-
-    wallpaper_manager = WallpaperManager()
-    wallpaper_list = wallpaper_manager.get_wallpaper_list()
-
-    # 壁纸主题分类
-    wallpaper_themes = {
-        "space": [
-            "solar_system",
-            "starship",
-            "earth_rise",
-            "saturn_rings",
-            "galaxy",
-            "moon_landing",
-            "mars_landscape",
-            "nebula",
-        ],
-        "nature": [
-            "snow_mountain",
-            "cherry_blossom",
-            "sunset_beach",
-            "forest_path",
-            "northern_lights",
-        ],
-        "warm": ["family_home", "couple_love", "coffee_time", "reading_room", "rainy_window"],
-        "animals": [
-            "cat_nap",
-            "dog_play",
-            "bird_tree",
-            "butterfly_garden",
-            "whale_ocean",
-            "panda_bamboo",
-            "flower_meadow",
-            "cactus_desert",
-        ],
-    }
-
-    wallpaper_generated = []
-    for wallpaper_name in wallpaper_list:
-        try:
-            # 确定主题分类
-            theme = "misc"
-            for theme_name, names in wallpaper_themes.items():
-                if wallpaper_name in names:
-                    theme = theme_name
-                    break
-
-            print(f"🖼️  Generating wallpaper: {wallpaper_name} ({theme})")
-            image = wallpaper_manager.create_wallpaper(800, 480, wallpaper_name)
-
-            # 保存到主题子目录
-            output_dir = Config.DATA_DIR / "screenshots" / "wallpapers" / theme
-            output_dir.mkdir(parents=True, exist_ok=True)
-            output_path = output_dir / f"{wallpaper_name}.png"
-            image.save(output_path)
-
-            wallpaper_generated.append(
-                {"name": wallpaper_name, "path": output_path, "theme": theme}
-            )
-            print(f"✅ Saved to: {output_path}\n")
-        except Exception as e:
-            print(f"❌ Failed: {e}\n")
-
-    # 生成壁纸 README 片段
-    print("=" * 50)
-    print("\n📝 Wallpaper README.md snippet:\n")
-    print("## 🎨 Wallpapers\n")
-
-    # 按主题分组显示
-    theme_display_names = {
-        "space": "Space Theme",
-        "nature": "Nature Theme",
-        "warm": "Warm Theme",
-        "animals": "Animals & Plants Theme",
-    }
-
-    for theme, display_name in theme_display_names.items():
-        theme_items = [w for w in wallpaper_generated if w.get("theme") == theme]
-        if theme_items:
-            print(f"### {display_name}\n")
-            for item in theme_items:
-                rel_path = item["path"].relative_to(project_root)
-                print(f"#### {item['name'].replace('_', ' ').title()}")
-                print(f"![{item['name'].replace('_', ' ').title()}]({rel_path})\n")
-
-    print(f"\n✨ Generated {len(wallpaper_generated)} wallpapers!")
-    print(f"📁 Total files: {len(generated) + len(wallpaper_generated)}")
-    print("📂 Directory structure:")
-    print(f"   {Config.DATA_DIR.name}/screenshots/")
-    print("   ├── dashboard/")
-    print("   ├── holidays/")
-    print("   ├── market/")
-    print("   ├── stats/")
-    print("   └── wallpapers/")
-    print("       ├── space/")
-    print("       ├── nature/")
-    print("       ├── warm/")
-    print("       └── animals/")
 
 
 if __name__ == "__main__":
