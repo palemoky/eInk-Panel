@@ -15,17 +15,17 @@ The easiest way to run is using Docker - it handles all dependencies and driver 
 ### 📊 Dashboard & Other Modes
 | Dashboard | Quote | Poetry | Wallpaper |
 |-----------|-------|--------|-----------|
-| ![Dashboard](./docs/screenshots/dashboard.png) | ![Quote](./docs/screenshots/quote.png) | ![Poetry](./docs/screenshots/poetry.png) | ![Wallpaper](./docs/screenshots/wallpaper.png) |
+| ![Dashboard](https://raw.githubusercontent.com/palemoky/eink-dashboard/main/docs/screenshots/dashboard.png) | ![Quote](https://raw.githubusercontent.com/palemoky/eink-dashboard/main/docs/screenshots/quote.png) | ![Poetry](https://raw.githubusercontent.com/palemoky/eink-dashboard/main/docs/screenshots/poetry.png) | ![Wallpaper](https://raw.githubusercontent.com/palemoky/eink-dashboard/main/docs/screenshots/wallpaper.png) |
 
 
 ### 🎉 Special Days
 | Year-End | Birthday | Anniversary |
 |----------|---------|-------------|
-| ![Year-End Summary](./docs/screenshots/year_end_summary.png) | ![Birthday](./docs/screenshots/birthday.png) | ![Anniversary](./docs/screenshots/anniversary.png) |
+| ![Year-End Summary](https://raw.githubusercontent.com/palemoky/eink-dashboard/main/docs/screenshots/year_end_summary.png) | ![Birthday](https://raw.githubusercontent.com/palemoky/eink-dashboard/main/docs/screenshots/birthday.png) | ![Anniversary](https://raw.githubusercontent.com/palemoky/eink-dashboard/main/docs/screenshots/anniversary.png) |
 
 | New Year | Christmas | Spring Festival | Moon Festival |
 |----------|----------|----------------|---------------|
-| ![New Year](./docs/screenshots/new_year.png) | ![Christmas](./docs/screenshots/christmas.png) | ![Spring Festival](./docs/screenshots/spring_festival.png) | ![Moon Festival](./docs/screenshots/moon_festival.png) |
+| ![New Year](https://raw.githubusercontent.com/palemoky/eink-dashboard/main/docs/screenshots/new_year.png) | ![Christmas](https://raw.githubusercontent.com/palemoky/eink-dashboard/main/docs/screenshots/christmas.png) | ![Spring Festival](https://raw.githubusercontent.com/palemoky/eink-dashboard/main/docs/screenshots/spring_festival.png) | ![Moon Festival](https://raw.githubusercontent.com/palemoky/eink-dashboard/main/docs/screenshots/moon_festival.png) |
 
 ### Pull and Run
 
