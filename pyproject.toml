@@ -1,5 +1,5 @@
 [project]
-name = "eink-panel"
+name = "eink-dashboard"
 version = "0.2.0"
 description = "A personalized, asynchronous dashboard for Waveshare E-Ink displays"
 readme = "README.md"

@@ -12,9 +12,9 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  DOCKERHUB_IMAGE: palemoky/eink-panel
-  GHCR_IMAGE: ghcr.io/palemoky/eink-panel
-  PACKAGE_NAME: eink-panel
+  DOCKERHUB_IMAGE: palemoky/eink-dashboard
+  GHCR_IMAGE: ghcr.io/palemoky/eink-dashboard
+  PACKAGE_NAME: eink-dashboard
   OWNER: palemoky
 
 jobs:

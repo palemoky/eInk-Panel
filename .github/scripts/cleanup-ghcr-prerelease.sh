@@ -3,7 +3,7 @@
 
 set -e
 
-PACKAGE_NAME="${1:-eink-panel}"
+PACKAGE_NAME="${1:-eink-dashboard}"
 OWNER="${2:-palemoky}"
 
 echo "🧹 Cleaning up old GHCR pre-release images..."

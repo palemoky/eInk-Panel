@@ -1,9 +1,9 @@
 # E-Ink Panel
 
-[![Docker Hub](https://img.shields.io/docker/v/palemoky/eink-panel?label=Docker%20Hub&logo=docker)](https://hub.docker.com/r/palemoky/eink-panel)
-[![Docker Image Size](https://img.shields.io/docker/image-size/palemoky/eink-panel/latest)](https://hub.docker.com/r/palemoky/eink-panel)
-[![GitHub](https://img.shields.io/github/license/palemoky/eink-panel)](https://github.com/palemoky/eink-panel)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/palemoky/eink-panel/release.yml)](https://github.com/palemoky/eink-panel/actions)
+[![Docker Hub](https://img.shields.io/docker/v/palemoky/eink-dashboard?label=Docker%20Hub&logo=docker)](https://hub.docker.com/r/palemoky/eink-dashboard)
+[![Docker Image Size](https://img.shields.io/docker/image-size/palemoky/eink-dashboard/latest)](https://hub.docker.com/r/palemoky/eink-dashboard)
+[![GitHub](https://img.shields.io/github/license/palemoky/eink-dashboard)](https://github.com/palemoky/eink-dashboard)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/palemoky/eink-dashboard/release.yml)](https://github.com/palemoky/eink-dashboard/actions)
 
 A personalized, asynchronous dashboard for Waveshare E-Ink displays, built with Python and Docker.
 
@@ -31,14 +31,14 @@ The easiest way to run is using Docker - it handles all dependencies and driver 
 
 ```bash
 # Pull the latest image
-docker pull palemoky/eink-panel:latest
+docker pull palemoky/eink-dashboard:latest
 
 # Or use GitHub Container Registry
-docker pull ghcr.io/palemoky/eink-panel:latest
+docker pull ghcr.io/palemoky/eink-dashboard:latest
 
 # Run with docker-compose (recommended)
-git clone https://github.com/palemoky/eink-panel.git
-cd eink-panel
+git clone https://github.com/palemoky/eink-dashboard.git
+cd eink-dashboard
 cp .env.example .env
 # Edit .env with your API keys
 docker-compose up -d
@@ -178,7 +178,7 @@ cp .env.example .env
 ### Display Not Updating
 - Check SPI is enabled: `sudo raspi-config` → Interface Options → SPI → Yes
 - Verify device permissions: `ls -l /dev/spi* /dev/gpiomem`
-- Check logs: `docker-compose logs -f eink-panel`
+- Check logs: `docker-compose logs -f eink-dashboard`
 
 ### GPIO Errors in Docker
 Ensure `docker-compose.yml` has:
@@ -198,6 +198,6 @@ MIT License - Copyright (c) 2025 Palemoky
 
 ## 🔗 Links
 
-- [GitHub Repository](https://github.com/palemoky/eink-panel)
-- [Docker Hub](https://hub.docker.com/r/palemoky/eink-panel)
-- [GitHub Packages](https://github.com/palemoky/eink-panel/pkgs/container/eink-panel)
+- [GitHub Repository](https://github.com/palemoky/eink-dashboard)
+- [Docker Hub](https://hub.docker.com/r/palemoky/eink-dashboard)
+- [GitHub Packages](https://github.com/palemoky/eink-dashboard/pkgs/container/eink-dashboard)

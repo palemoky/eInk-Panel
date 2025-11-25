@@ -1,8 +1,8 @@
 version: "3"
 services:
-  eink-panel:
-    image: palemoky/eink-panel:latest
-    container_name: eink-panel
+  eink-dashboard:
+    image: palemoky/eink-dashboard:latest
+    container_name: eink-dashboard
     privileged: true # 必须，为了访问 GPIO
     devices:
       - /dev/spidev0.0:/dev/spidev0.0 # SPI 接口
