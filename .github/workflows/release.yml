@@ -52,7 +52,7 @@ jobs:
 
       - name: Run tests
         run: |
-          uv run pytest tests/
+          uv run python -m pytest tests/
 
   # Build and publish Docker images to Docker Hub and GHCR
   build-and-push:

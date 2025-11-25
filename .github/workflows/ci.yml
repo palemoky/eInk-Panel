@@ -31,7 +31,7 @@ jobs:
 
       - name: Run tests
         run: |
-          uv run pytest tests/
+          uv run python -m pytest tests/
 
       - name: Code quality checks
         run: |
