@@ -11,7 +11,7 @@ from typing import TypedDict
 
 import httpx
 
-from .config import BASE_DIR, Config
+from ..config import BASE_DIR, Config
 
 logger = logging.getLogger(__name__)
 

@@ -10,7 +10,7 @@ from pathlib import Path
 
 from PIL import Image
 
-from .config import BASE_DIR
+from ..config import BASE_DIR
 
 logger = logging.getLogger(__name__)
 

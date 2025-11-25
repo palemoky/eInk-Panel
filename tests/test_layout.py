@@ -3,7 +3,7 @@
 from PIL import Image
 
 from src.config import Config
-from src.dashboard_layout import DashboardLayout
+from src.layouts import DashboardLayout
 
 
 def test_layout_creation(monkeypatch):

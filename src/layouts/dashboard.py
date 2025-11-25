@@ -8,8 +8,8 @@ import datetime
 
 from PIL import Image, ImageDraw
 
-from .config import Config
-from .dashboard_renderer import Renderer
+from ..config import Config
+from ..dashboard_renderer import Renderer
 
 
 class DashboardLayout:

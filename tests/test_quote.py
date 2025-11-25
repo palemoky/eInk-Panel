@@ -2,7 +2,7 @@
 
 import logging
 
-from src.quote_provider import get_quote
+from src.providers.quote import get_quote
 
 logging.basicConfig(level=logging.INFO)
 

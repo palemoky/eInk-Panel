@@ -15,9 +15,9 @@ import pendulum
 # Try relative import first (for package mode)
 try:
     from .config import Config, register_reload_callback, start_config_watcher, stop_config_watcher
-    from .dashboard_layout import DashboardLayout
-    from .dashboard_provider import DataManager
     from .drivers.factory import get_driver
+    from .layouts import DashboardLayout
+    from .providers import DataManager
 except ImportError:
     # If relative import fails, add parent directory to path
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -27,9 +27,9 @@ except ImportError:
         start_config_watcher,
         stop_config_watcher,
     )
-    from src.dashboard_layout import DashboardLayout
-    from src.dashboard_provider import DataManager
     from src.drivers.factory import get_driver
+    from src.layouts import DashboardLayout
+    from src.providers import DataManager
 
 # 配置日志（支持环境变量控制日志级别）
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
@@ -231,7 +231,7 @@ async def main():
                             )
                             image = layout.create_image(epd.width, epd.height, data)
                         else:
-                            from src.quote_layout import QuoteLayout
+                            from src.layouts.quote import QuoteLayout
 
                             quote_layout = QuoteLayout()
                             image = quote_layout.create_quote_image(
@@ -247,7 +247,7 @@ async def main():
                             )
                             image = layout.create_image(epd.width, epd.height, data)
                         else:
-                            from src.poetry_layout import PoetryLayout
+                            from src.layouts.poetry import PoetryLayout
 
                             poetry_layout = PoetryLayout()
                             image = poetry_layout.create_poetry_image(
@@ -257,7 +257,7 @@ async def main():
 
                     case "wallpaper":
                         # Wallpaper mode: generate wallpaper image
-                        from src.wallpaper import WallpaperManager
+                        from src.providers.wallpaper import WallpaperManager
 
                         wallpaper_manager = WallpaperManager()
                         wallpaper_name = (

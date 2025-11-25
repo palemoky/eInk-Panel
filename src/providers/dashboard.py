@@ -22,7 +22,7 @@ from tenacity import (
     wait_fixed,
 )
 
-from .config import Config
+from ..config import Config
 
 logger = logging.getLogger(__name__)
 
@@ -472,7 +472,7 @@ class DataManager:
 
             # Fetch TODO lists
             if "todo" in required_data:
-                from .todo_providers import get_todo_lists
+                from .todo import get_todo_lists
 
                 todo_goals, todo_must, todo_optional = await get_todo_lists()
                 data["todo_goals"] = todo_goals
