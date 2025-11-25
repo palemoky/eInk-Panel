@@ -11,6 +11,7 @@ import signal
 import sys
 
 import pendulum
+from PIL import Image, ImageDraw
 
 # Try relative import first (for package mode)
 try:
@@ -31,7 +32,7 @@ except ImportError:
     from src.layouts import DashboardLayout
     from src.providers import DataManager
 
-# 配置日志（支持环境变量控制日志级别）
+# Configure logging (supports environment variable control)
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(
     level=LOG_LEVEL,
@@ -40,12 +41,15 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# 全局变量用于信号处理
+# Constants
+DEFAULT_RANDOM_WALLPAPER_INTERVAL = 3600  # Default interval for random wallpaper (1 hour)
+
+# Global variable for signal handling
 _driver = None
 
 
 def signal_handler(signum, frame):
-    """处理 SIGTERM/SIGINT 信号，确保优雅关闭"""
+    """Handle SIGTERM/SIGINT signals for graceful shutdown."""
     logger.info(f"\n🛑 Received signal {signum}, shutting down gracefully...")
     if _driver:
         try:
@@ -57,31 +61,35 @@ def signal_handler(signum, frame):
     sys.exit(0)
 
 
-# 注册信号处理器
+# Register signal handlers
 signal.signal(signal.SIGTERM, signal_handler)
 signal.signal(signal.SIGINT, signal_handler)
 
 
 def is_in_quiet_hours():
-    """检查当前时间是否在静默时间段内，并返回需要休眠的秒数"""
+    """Check if current time is within quiet hours and return sleep duration.
+
+    Returns:
+        Tuple of (is_quiet: bool, sleep_seconds: int)
+    """
     now = pendulum.now(Config.hardware.timezone)
 
-    # 构建今天的开始和结束时间点
+    # Build today's start and end time points
     start_time = now.replace(
         hour=Config.hardware.quiet_start_hour, minute=0, second=0, microsecond=0
     )
     end_time = now.replace(hour=Config.hardware.quiet_end_hour, minute=0, second=0, microsecond=0)
 
-    # 处理跨天的情况 (例如 23:00 到 06:00)
+    # Handle cross-day scenarios (e.g., 23:00 to 06:00)
     if Config.hardware.quiet_start_hour > Config.hardware.quiet_end_hour:
         if now.hour >= Config.hardware.quiet_start_hour:
-            # 现在是晚上，结束时间是明天
+            # It's evening, end time is tomorrow
             end_time = end_time.add(days=1)
         elif now.hour < Config.hardware.quiet_end_hour:
-            # 现在是凌晨，开始时间是昨天
+            # It's early morning, start time was yesterday
             start_time = start_time.subtract(days=1)
 
-    # 判断是否在范围内
+    # Check if within range
     if start_time <= now < end_time:
         sleep_seconds = (end_time - now).total_seconds()
         return True, int(sleep_seconds)
@@ -107,7 +115,7 @@ def get_refresh_interval(display_mode: str) -> int:
             return Config.display.refresh_interval_poetry
         case "wallpaper":
             # If wallpaper name is specified (not random), use wallpaper interval (can be 0)
-            # If random wallpaper, use the configured interval
+            # If random wallpaper, use the configured interval or fallback
             if Config.display.wallpaper_name:
                 return Config.display.refresh_interval_wallpaper
             else:
@@ -115,7 +123,7 @@ def get_refresh_interval(display_mode: str) -> int:
                 return (
                     Config.display.refresh_interval_wallpaper
                     if Config.display.refresh_interval_wallpaper > 0
-                    else 3600
+                    else DEFAULT_RANDOM_WALLPAPER_INTERVAL
                 )
         case "holiday":
             return Config.display.refresh_interval_holiday
@@ -126,11 +134,141 @@ def get_refresh_interval(display_mode: str) -> int:
             return Config.hardware.refresh_interval
 
 
+def generate_image(display_mode: str, data: dict, epd, layout) -> Image.Image:
+    """Generate image based on display mode.
+
+    Args:
+        display_mode: Current display mode
+        data: Data dictionary containing all fetched information
+        epd: E-Paper Display driver instance
+        layout: DashboardLayout instance
+
+    Returns:
+        PIL Image object ready for display
+    """
+    match display_mode:
+        case "dashboard":
+            logger.info("📊 Dashboard")
+            return layout.create_image(epd.width, epd.height, data)
+
+        case "quote":
+            # Quote mode: use elegant quote layout
+            if not data.get("quote"):
+                logger.warning("Quote mode enabled but no quote found, falling back to dashboard")
+                return layout.create_image(epd.width, epd.height, data)
+
+            from src.layouts.quote import QuoteLayout
+
+            quote_layout = QuoteLayout()
+            logger.info("💬 Quote (elegant layout)")
+            return quote_layout.create_quote_image(epd.width, epd.height, data["quote"])
+
+        case "poetry":
+            # Poetry mode: use elegant vertical layout
+            if not data.get("quote"):
+                logger.warning("Poetry mode enabled but no poetry found, falling back to dashboard")
+                return layout.create_image(epd.width, epd.height, data)
+
+            from src.layouts.poetry import PoetryLayout
+
+            poetry_layout = PoetryLayout()
+            logger.info("📜 Poetry (vertical layout)")
+            return poetry_layout.create_poetry_image(epd.width, epd.height, data["quote"])
+
+        case "wallpaper":
+            # Wallpaper mode: generate wallpaper image
+            from src.providers.wallpaper import WallpaperManager
+
+            wallpaper_manager = WallpaperManager()
+            wallpaper_name = Config.display.wallpaper_name or None
+            logger.info(f"🎨 Wallpaper: {wallpaper_name or 'random'}")
+            return wallpaper_manager.create_wallpaper(epd.width, epd.height, wallpaper_name)
+
+        case "holiday":
+            # Holiday mode: full screen greeting message
+            from src.holiday import HolidayManager
+
+            holiday_manager = HolidayManager()
+            holiday = holiday_manager.get_holiday()
+
+            image = Image.new("1", (epd.width, epd.height), 255)
+            draw = ImageDraw.Draw(image)
+            layout.renderer.draw_full_screen_message(
+                draw,
+                epd.width,
+                epd.height,
+                holiday["title"],
+                holiday["message"],
+                holiday.get("icon"),
+            )
+            logger.info(f"🎉 Holiday: {holiday['name']}")
+            return image
+
+        case "year_end":
+            # Year-end summary: GitHub contribution summary
+            image = Image.new("1", (epd.width, epd.height), 255)
+            draw = ImageDraw.Draw(image)
+            layout._draw_year_end_summary(draw, epd.width, epd.height, data["github_year_summary"])
+            logger.info("🎊 Year-end summary")
+            return image
+
+        case _:
+            logger.warning(f"Unknown display mode: {display_mode}, falling back to dashboard")
+            return layout.create_image(epd.width, epd.height, data)
+
+
+def update_display(epd, image: Image.Image, display_mode: str):
+    """Update the E-Ink display with the generated image.
+
+    Args:
+        epd: E-Paper Display driver instance
+        image: PIL Image to display
+        display_mode: Current display mode (for screenshot filename)
+    """
+    # Save screenshot if in screenshot mode
+    if Config.hardware.is_screenshot_mode:
+        screenshot_filename = f"screenshot_{display_mode}.png"
+        screenshot_path = Config.DATA_DIR / screenshot_filename
+        image.save(screenshot_path)
+        logger.info(f"Screenshot saved to {screenshot_path}")
+
+    # Display image on E-Ink screen
+    epd.init()
+    epd.display(image)
+    epd.sleep()
+
+
+async def handle_quiet_hours(config_changed: asyncio.Event) -> bool:
+    """Handle quiet hours logic.
+
+    Args:
+        config_changed: Event to signal config reload
+
+    Returns:
+        True if in quiet hours (should skip refresh), False otherwise
+    """
+    in_quiet, sleep_seconds = is_in_quiet_hours()
+    if in_quiet:
+        logger.info(
+            f"In quiet hours ({Config.hardware.quiet_start_hour}:00-{Config.hardware.quiet_end_hour}:00), "
+            f"sleeping for {sleep_seconds} seconds"
+        )
+        # During quiet hours, still check for config changes but don't refresh
+        try:
+            await asyncio.wait_for(config_changed.wait(), timeout=sleep_seconds)
+            config_changed.clear()
+            logger.info("Config changed during quiet hours, will apply on next refresh")
+        except asyncio.TimeoutError:
+            pass
+        return True
+    return False
+
+
 async def main():
-    """主函数"""
+    """Main application entry point."""
     global _driver
 
-    # 验证必需的环境变量
+    # Validate required environment variables
     try:
         Config.validate_required()
     except ValueError as e:
@@ -152,7 +290,7 @@ async def main():
     config_changed = asyncio.Event()
 
     def on_config_reload():
-        """Callback when config is reloaded - trigger screen refresh"""
+        """Callback when config is reloaded - trigger screen refresh."""
         logger.info("🔄 Config changed, triggering screen refresh...")
         config_changed.set()
 
@@ -162,16 +300,16 @@ async def main():
     # Start configuration file watcher for hot reload
     start_config_watcher()
 
-    # 初始化驱动
+    # Initialize driver
     _driver = get_driver()
-    epd = _driver  # 保持局部变量以兼容现有代码
+    epd = _driver  # Keep local variable for compatibility
 
     layout = DashboardLayout()
 
-    # 使用 DataManager 上下文管理器 (管理 HTTP Client)
+    # Use DataManager context manager (manages HTTP Client)
     async with DataManager() as dm:
         try:
-            # 首次启动执行一次完整清屏
+            # Perform initial clear on first startup
             logger.info("Performing initial clear...")
             epd.init()
             epd.clear()
@@ -181,24 +319,13 @@ async def main():
                 now = pendulum.now(Config.hardware.timezone)
                 current_time = now.to_time_string()
 
-                # 检查是否在静默时间段
-                in_quiet, sleep_seconds = is_in_quiet_hours()
-                if in_quiet:
-                    logger.info(
-                        f"In quiet hours ({Config.hardware.quiet_start_hour}:00-{Config.hardware.quiet_end_hour}:00), sleeping for {sleep_seconds} seconds"
-                    )
-                    # During quiet hours, still check for config changes but don't refresh
-                    try:
-                        await asyncio.wait_for(config_changed.wait(), timeout=sleep_seconds)
-                        config_changed.clear()
-                        logger.info("Config changed during quiet hours, will apply on next refresh")
-                    except asyncio.TimeoutError:
-                        pass
+                # Check if in quiet hours
+                if await handle_quiet_hours(config_changed):
                     continue
 
                 logger.info(f"Refreshing at {current_time}")
 
-                # Fetch data based on current mode (DataManager handles mode-specific fetching)
+                # Fetch data based on current mode
                 data = await dm.fetch_all_data()
 
                 # Determine display mode (holiday and year-end have highest priority)
@@ -217,102 +344,9 @@ async def main():
 
                 logger.info(f"Current display mode: {display_mode}")
 
-                # Generate image based on display mode
-                match display_mode:
-                    case "dashboard":
-                        image = layout.create_image(epd.width, epd.height, data)
-                        logger.info("📊 Dashboard")
-
-                    case "quote":
-                        # Quote mode: use elegant quote layout
-                        if not data.get("quote"):
-                            logger.warning(
-                                "Quote mode enabled but no quote found, falling back to dashboard"
-                            )
-                            image = layout.create_image(epd.width, epd.height, data)
-                        else:
-                            from src.layouts.quote import QuoteLayout
-
-                            quote_layout = QuoteLayout()
-                            image = quote_layout.create_quote_image(
-                                epd.width, epd.height, data["quote"]
-                            )
-                            logger.info("💬 Quote (elegant layout)")
-
-                    case "poetry":
-                        # Poetry mode: use elegant vertical layout
-                        if not data.get("quote"):
-                            logger.warning(
-                                "Poetry mode enabled but no poetry found, falling back to dashboard"
-                            )
-                            image = layout.create_image(epd.width, epd.height, data)
-                        else:
-                            from src.layouts.poetry import PoetryLayout
-
-                            poetry_layout = PoetryLayout()
-                            image = poetry_layout.create_poetry_image(
-                                epd.width, epd.height, data["quote"]
-                            )
-                            logger.info("📜 Poetry (vertical layout)")
-
-                    case "wallpaper":
-                        # Wallpaper mode: generate wallpaper image
-                        from src.providers.wallpaper import WallpaperManager
-
-                        wallpaper_manager = WallpaperManager()
-                        wallpaper_name = (
-                            Config.display.wallpaper_name if Config.display.wallpaper_name else None
-                        )
-                        image = wallpaper_manager.create_wallpaper(
-                            epd.width, epd.height, wallpaper_name
-                        )
-                        logger.info(f"🎨 Wallpaper: {wallpaper_name or 'random'}")
-
-                    case "holiday":
-                        from PIL import Image, ImageDraw
-
-                        image = Image.new("1", (epd.width, epd.height), 255)
-                        draw = ImageDraw.Draw(image)
-                        layout.renderer.draw_full_screen_message(
-                            draw,
-                            epd.width,
-                            epd.height,
-                            holiday["title"],
-                            holiday["message"],
-                            holiday.get("icon"),
-                        )
-                        logger.info(f"🎉 Holiday: {holiday['name']}")
-
-                    case "year_end":
-                        from PIL import Image, ImageDraw
-
-                        image = Image.new("1", (epd.width, epd.height), 255)
-                        draw = ImageDraw.Draw(image)
-                        layout._draw_year_end_summary(
-                            draw, epd.width, epd.height, data["github_year_summary"]
-                        )
-                        logger.info("🎊 Year-end summary")
-
-                    case _:
-                        logger.warning(f"Unknown display mode: {display_mode}")
-                        image = layout.create_image(epd.width, epd.height, data)
-
-                if Config.hardware.is_screenshot_mode:
-                    # 截图模式：保存到文件（使用模式特定的文件名）
-                    screenshot_filename = f"screenshot_{display_mode}.png"
-                    screenshot_path = Config.DATA_DIR / screenshot_filename
-                    image.save(screenshot_path)
-                    logger.info(f"Screenshot saved to {screenshot_path}")
-                    # Continue to display on screen if driver is available
-                    if not _driver or getattr(_driver, "is_mock", False):
-                        # If mock driver and screenshot mode, we might want to exit?
-                        # But user reported loop, so let's just continue
-                        pass
-
-                # 3. 显示图像
-                epd.init()
-                epd.display(image)
-                epd.sleep()
+                # Generate and display image
+                image = generate_image(display_mode, data, epd, layout)
+                update_display(epd, image, display_mode)
 
                 # Get mode-specific refresh interval
                 refresh_interval = get_refresh_interval(display_mode)
@@ -347,7 +381,7 @@ async def main():
         except KeyboardInterrupt:
             logger.info("Exiting...")
             epd.init()
-            epd.Clear()
+            epd.clear()
             epd.sleep()
         except Exception as e:
             logger.error(f"Critical Error: {e}", exc_info=True)
