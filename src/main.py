@@ -166,7 +166,7 @@ async def main():
                 match display_mode:
                     case "wallpaper":
                         # Wallpaper mode: generate wallpaper image
-                        from .wallpaper import WallpaperManager
+                        from src.wallpaper import WallpaperManager
 
                         wallpaper_manager = WallpaperManager()
                         wallpaper_name = (
@@ -185,7 +185,7 @@ async def main():
                             )
                             image = layout.create_image(epd.width, epd.height, data)
                         else:
-                            from .poetry_layout import PoetryLayout
+                            from src.poetry_layout import PoetryLayout
 
                             poetry_layout = PoetryLayout()
                             image = poetry_layout.create_poetry_image(
@@ -201,7 +201,7 @@ async def main():
                             )
                             image = layout.create_image(epd.width, epd.height, data)
                         else:
-                            from .quote_layout import QuoteLayout
+                            from src.quote_layout import QuoteLayout
 
                             quote_layout = QuoteLayout()
                             image = quote_layout.create_quote_image(
