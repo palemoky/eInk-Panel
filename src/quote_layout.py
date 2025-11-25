@@ -8,7 +8,7 @@ import textwrap
 
 from PIL import Image, ImageDraw
 
-from .renderer import Renderer
+from .dashboard_renderer import Renderer
 
 logger = logging.getLogger(__name__)
 

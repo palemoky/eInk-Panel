@@ -9,7 +9,7 @@ import datetime
 from PIL import Image, ImageDraw
 
 from .config import Config
-from .renderer import Renderer
+from .dashboard_renderer import Renderer
 
 
 class DashboardLayout:
