@@ -215,9 +215,11 @@ async def main():
                         logger.info("📊 Dashboard mode active")
 
                 if Config.hardware.is_screenshot_mode:
-                    # 截图模式：保存到文件
-                    image.save("screenshot.png")
-                    logger.info("Screenshot saved to screenshot.png")
+                    # 截图模式：保存到文件（使用模式特定的文件名）
+                    screenshot_filename = f"screenshot_{display_mode}.png"
+                    screenshot_path = Config.DATA_DIR / screenshot_filename
+                    image.save(screenshot_path)
+                    logger.info(f"Screenshot saved to {screenshot_path}")
                     # Continue to display on screen if driver is available
                     if not _driver or getattr(_driver, "is_mock", False):
                         # If mock driver and screenshot mode, we might want to exit?
