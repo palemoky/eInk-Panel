@@ -362,7 +362,7 @@ class Dashboard:
     """
 
     def __init__(self):
-        self.cache_file = Config.DATA_DIR / "cache.json"
+        self.cache_file = Config.DATA_DIR / "dashboard_cache.json"
         self.client = None
 
     async def __aenter__(self):

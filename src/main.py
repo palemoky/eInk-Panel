@@ -166,7 +166,7 @@ def generate_image(display_mode: str, data: dict, epd, layout) -> Image.Image:
 
         case "poetry":
             # Poetry mode: use elegant vertical layout
-            if not data.get("quote"):
+            if not data.get("poetry"):
                 logger.warning("Poetry mode enabled but no poetry found, falling back to dashboard")
                 return layout.create_image(epd.width, epd.height, data)
 
@@ -174,7 +174,7 @@ def generate_image(display_mode: str, data: dict, epd, layout) -> Image.Image:
 
             poetry_layout = PoetryLayout()
             logger.info("📜 Poetry (vertical layout)")
-            return poetry_layout.create_poetry_image(epd.width, epd.height, data["quote"])
+            return poetry_layout.create_poetry_image(epd.width, epd.height, data["poetry"])
 
         case "wallpaper":
             # Wallpaper mode: generate wallpaper image
@@ -368,7 +368,7 @@ async def main():
                     from src.providers.poetry import get_poetry
 
                     async with httpx.AsyncClient() as client:
-                        data["quote"] = await get_poetry(client)
+                        data["poetry"] = await get_poetry(client)
 
                 # Generate and display image
                 image = generate_image(display_mode, data, epd, layout)
