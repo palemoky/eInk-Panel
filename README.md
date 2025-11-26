@@ -194,7 +194,7 @@ volumes:
 
 ## 📝 License
 
-MIT License - Copyright (c) 2025 Palemoky
+MIT License - Copyright © 2025 Palemoky
 
 ## 🔗 Links
 
