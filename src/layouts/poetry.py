@@ -93,7 +93,7 @@ class PoetryLayout:
             parts = source.replace("・", "·").split("·")
             main_title = parts[0]
             sub_title = parts[1] if len(parts) > 1 else ""
-        elif len(source) > 7:
+        elif len(source) > 5:
             title_mode = 2
             mid = math.ceil(len(source) / 2)
             main_title = source[:mid]
@@ -108,7 +108,7 @@ class PoetryLayout:
             "col_spacing": 90,
             "group_spacing": 120,
             "margin_top": 60,
-            "main_title_size": 70,
+            "main_title_size": 60,
             "sub_title_size": 30,
             "title_gap": 25,
         }
@@ -189,16 +189,12 @@ class PoetryLayout:
             seal_anchor_y = y_curr
 
         # 3. 绘制印章
-        seal_size = int(cfg["main_title_size"] * 0.9)  # 以主标题字号为基准
-        if seal_size < 50:
-            seal_size = 50
-        if seal_size > 70:
-            seal_size = 70
+        seal_size = int(cfg["main_title_size"] * 0.8)  # 以主标题字号为基准
+        offset = (cfg["main_title_size"] - seal_size) / 2
+        seal_anchor_x = int(x_main + offset)
+        seal_anchor_y = main_end_y + 20
 
-        if title_mode == 2 and seal_size > 55:
-            seal_size = 55
-
-        self._draw_seal(draw, author, seal_anchor_x, seal_anchor_y + 50, seal_size)
+        self._draw_seal(draw, author, seal_anchor_x, seal_anchor_y, seal_size)
 
         # ============ 绘制正文 ============
 
