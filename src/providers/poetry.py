@@ -153,7 +153,7 @@ class PoetryProvider:
         origin = data["data"].get("origin", {})
 
         return {
-            "content": origin["content"],
+            "content": origin.get("content", ""),
             "author": origin.get("author", "Unknown"),
             "source": origin.get("title", ""),
             "type": "poetry",
