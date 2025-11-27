@@ -32,7 +32,7 @@ dependencies = [
 [project.optional-dependencies]
 # Hardware dependencies (only needed on Raspberry Pi)
 hardware = [
-    "RPi.GPIO",
+    "rpi-lgpio",
     "gpiozero",
     "spidev",
 ]
