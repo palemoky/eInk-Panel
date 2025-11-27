@@ -219,13 +219,16 @@ def generate_image(display_mode: str, data: dict, epd, layout) -> Image.Image:
             return layout.create_image(epd.width, epd.height, data)
 
 
-def update_display(epd: Any, image: Image.Image, display_mode: str) -> None:
+def update_display(
+    epd: Any, image: Image.Image, display_mode: str, use_fast_refresh: bool = False
+) -> None:
     """Update the E-Ink display with the generated image.
 
     Args:
         epd: E-Paper Display driver instance
         image: PIL Image to display
         display_mode: Current display mode (for screenshot filename)
+        use_fast_refresh: If True, use fast refresh mode (less flashing)
     """
     # Save screenshot if in screenshot mode
     if Config.hardware.is_screenshot_mode:
@@ -235,7 +238,9 @@ def update_display(epd: Any, image: Image.Image, display_mode: str) -> None:
         logger.info(f"Screenshot saved to {screenshot_path}")
 
     # Display image on E-Ink screen
-    epd.init()
+    refresh_mode = "fast" if use_fast_refresh else "full"
+    logger.debug(f"Using {refresh_mode} refresh mode")
+    epd.init(fast=use_fast_refresh)
     epd.display(image)
     epd.sleep()
 
@@ -421,15 +426,20 @@ async def main():
     # Use Dashboard context manager (manages HTTP Client)
     async with Dashboard() as dm:
         try:
-            # Perform initial clear on first startup
+            # Perform initial clear on first startup (full refresh)
             logger.info("Performing initial clear...")
-            epd.init()
+            epd.init(fast=False)  # Full refresh for initial clear
             epd.clear()
             epd.sleep()
+
+            # Track if this is the first refresh and last full refresh date
+            is_first_refresh = True
+            last_full_refresh_date = None
 
             while True:
                 now = pendulum.now(Config.hardware.timezone)
                 current_time = now.to_time_string()
+                current_date = now.date()
 
                 # Check if in quiet hours
                 if await handle_quiet_hours(config_changed):
@@ -448,9 +458,26 @@ async def main():
                 if display_mode == "year_end" and not data.get("github_year_summary"):
                     display_mode = "dashboard"
 
+                # Determine refresh mode: full refresh on first run or daily at midnight
+                use_fast_refresh = True  # Default to fast refresh
+
+                if is_first_refresh:
+                    # First refresh after startup: use full refresh
+                    use_fast_refresh = False
+                    is_first_refresh = False
+                    last_full_refresh_date = current_date
+                    logger.info("🔄 First refresh after startup - using full refresh")
+                elif last_full_refresh_date != current_date and now.hour == 0:
+                    # Daily full refresh at midnight (00:00)
+                    use_fast_refresh = False
+                    last_full_refresh_date = current_date
+                    logger.info("🌙 Daily midnight refresh - using full refresh to clear ghosting")
+                else:
+                    logger.info("⚡ Regular refresh - using fast refresh mode")
+
                 # Generate and display image
                 image = generate_image(display_mode, data, epd, layout)
-                update_display(epd, image, display_mode)
+                update_display(epd, image, display_mode, use_fast_refresh)
 
                 # Wait for next refresh or config change
                 refresh_interval = get_refresh_interval(display_mode)

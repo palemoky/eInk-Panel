@@ -32,8 +32,19 @@ class WaveshareEPDDriver:
             )
             raise
 
-    def init(self) -> None:
-        self.epd.init()
+    def init(self, fast: bool = False) -> None:
+        """Initialize the display.
+
+        Args:
+            fast: If True, use fast refresh mode (less flashing but may have ghosting).
+                  If False, use full refresh mode (more flashing but better quality).
+        """
+        if fast and hasattr(self.epd, "init_fast"):
+            logger.debug("Using fast refresh mode")
+            self.epd.init_fast()
+        else:
+            logger.debug("Using full refresh mode")
+            self.epd.init()
 
     def clear(self) -> None:
         self.epd.Clear()

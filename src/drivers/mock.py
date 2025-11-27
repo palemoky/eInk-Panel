@@ -11,8 +11,9 @@ class MockEPDDriver:
         self.height = height
         logger.info(f"Mock EPD initialized with size {width}x{height}")
 
-    def init(self) -> None:
-        logger.info("Mock EPD: init")
+    def init(self, fast: bool = False) -> None:
+        refresh_mode = "fast" if fast else "full"
+        logger.info(f"Mock EPD: init ({refresh_mode} refresh)")
 
     def clear(self) -> None:
         logger.info("Mock EPD: clear")
