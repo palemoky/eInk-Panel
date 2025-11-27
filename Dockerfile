@@ -12,6 +12,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     gcc \
     libc-dev \
     libjpeg-dev \
+    liblgpio-dev \
     zlib1g-dev \
     swig \
     curl \
