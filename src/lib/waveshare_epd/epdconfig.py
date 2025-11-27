@@ -27,13 +27,12 @@
 # THE SOFTWARE.
 #
 
-import os
 import logging
+import os
+import subprocess
 import sys
 import time
-import subprocess
-
-from ctypes import *
+from ctypes import CDLL
 
 logger = logging.getLogger(__name__)
 
@@ -49,17 +48,17 @@ class RaspberryPi:
     SCLK_PIN = 11
 
     def __init__(self):
-        import spidev
         import gpiozero
+        import spidev
 
         self.SPI = spidev.SpiDev()
         self.GPIO_RST_PIN = gpiozero.LED(self.RST_PIN)
         self.GPIO_DC_PIN = gpiozero.LED(self.DC_PIN)
         # self.GPIO_CS_PIN     = gpiozero.LED(self.CS_PIN)
         self.GPIO_PWR_PIN = gpiozero.LED(self.PWR_PIN)
-        
+
         # BUSY 引脚延迟初始化，避免在 __init__ 时就失败
-        self.GPIO = None
+        self.GPIO_BUSY_PIN = None
         self._busy_pin_initialized = False
 
     def digital_write(self, pin, value):
@@ -89,30 +88,27 @@ class RaspberryPi:
             # 延迟初始化 BUSY 引脚
             if not self._busy_pin_initialized:
                 try:
-                    import RPi.GPIO as GPIO
-                    self.GPIO = GPIO
-                    # 尝试设置 GPIO（可能在 Docker 中失败）
-                    try:
-                        self.GPIO.setmode(self.GPIO.BCM)
-                    except:
-                        pass  # 可能已经被其他地方设置过
-                    self.GPIO.setup(self.BUSY_PIN, self.GPIO.IN)
+                    import gpiozero
+
+                    # 使用 Button 来读取输入引脚，pull_up=False 表示不使用内部上拉
+                    self.GPIO_BUSY_PIN = gpiozero.Button(self.BUSY_PIN, pull_up=False)
                     self._busy_pin_initialized = True
                 except Exception as e:
                     logger.warning(f"Failed to initialize BUSY pin GPIO: {e}")
                     logger.warning("Using simulated BUSY pin (always ready)")
                     self._busy_pin_initialized = True  # 标记为已尝试，避免重复
                     return 0  # 返回 0 表示不忙（ready）
-            
+
             # 读取 BUSY 引脚状态
-            if self.GPIO:
+            if self.GPIO_BUSY_PIN:
                 try:
-                    return self.GPIO.input(self.BUSY_PIN)
-                except:
+                    # Button.is_pressed 返回 True/False，转换为 1/0
+                    return 1 if self.GPIO_BUSY_PIN.is_pressed else 0
+                except Exception:
                     return 0  # 失败时返回 ready 状态
             else:
                 return 0  # GPIO 未初始化，返回 ready 状态
-                
+
         elif pin == self.RST_PIN:
             return self.RST_PIN.value
         elif pin == self.DC_PIN:
@@ -186,11 +182,11 @@ class RaspberryPi:
             self.GPIO_DC_PIN.close()
             # self.GPIO_CS_PIN.close()
             self.GPIO_PWR_PIN.close()
-            # 清理 RPi.GPIO 对 BUSY 引脚的设置（如果已初始化）
-            if self.GPIO and self._busy_pin_initialized:
+            # 清理 BUSY 引脚（如果已初始化）
+            if self.GPIO_BUSY_PIN and self._busy_pin_initialized:
                 try:
-                    self.GPIO.cleanup(self.BUSY_PIN)
-                except:
+                    self.GPIO_BUSY_PIN.close()
+                except Exception:
                     pass
 
 
@@ -262,9 +258,7 @@ class JetsonNano:
         self.GPIO.output(self.DC_PIN, 0)
         self.GPIO.output(self.PWR_PIN, 0)
 
-        self.GPIO.cleanup(
-            [self.RST_PIN, self.DC_PIN, self.CS_PIN, self.BUSY_PIN, self.PWR_PIN]
-        )
+        self.GPIO.cleanup([self.RST_PIN, self.DC_PIN, self.CS_PIN, self.BUSY_PIN, self.PWR_PIN])
 
 
 class SunriseX3:
@@ -277,8 +271,8 @@ class SunriseX3:
     Flag = 0
 
     def __init__(self):
-        import spidev
         import Hobot.GPIO
+        import spidev
 
         self.GPIO = Hobot.GPIO
         self.SPI = spidev.SpiDev()
@@ -331,9 +325,7 @@ class SunriseX3:
         self.GPIO.output(self.DC_PIN, 0)
         self.GPIO.output(self.PWR_PIN, 0)
 
-        self.GPIO.cleanup(
-            [self.RST_PIN, self.DC_PIN, self.CS_PIN, self.BUSY_PIN], self.PWR_PIN
-        )
+        self.GPIO.cleanup([self.RST_PIN, self.DC_PIN, self.CS_PIN, self.BUSY_PIN], self.PWR_PIN)
 
 
 if sys.version_info[0] == 2:
