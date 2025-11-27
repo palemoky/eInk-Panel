@@ -12,11 +12,15 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     gcc \
     libc-dev \
     libjpeg-dev \
-    liblgpio-dev \
     zlib1g-dev \
     swig \
     curl \
     && rm -rf /var/lib/apt/lists/*
+
+RUN curl -LO http://archive.raspberrypi.org/debian/pool/main/l/lg-gpio/liblgpio1_0.2.2-1~rpt1_arm64.deb \
+    && curl -LO http://archive.raspberrypi.org/debian/pool/main/l/lg-gpio/liblgpio-dev_0.2.2-1~rpt1_arm64.deb \
+    && apt-get install -y ./liblgpio*.deb \
+    && rm liblgpio*.deb
 
 # 安装 uv 并安装依赖
 ADD --chmod=755 https://astral.sh/uv/install.sh /install.sh
