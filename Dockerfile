@@ -13,6 +13,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     libc-dev \
     libjpeg-dev \
     zlib1g-dev \
+    swig \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
