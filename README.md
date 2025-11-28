@@ -15,7 +15,7 @@ The easiest way to run is using Docker - it handles all dependencies and driver 
 ### 📊 Dashboard
 | Todo | HackerNews |
 |-----------|-------|
-| ![Todo](https://raw.githubusercontent.com/palemoky/eink-dashboard/main/docs/screenshots/dashboard_todo.png) | ![HackerNews](https://raw.githubusercontent.com/palemoky/eink-dashboard/main/docs/screenshots/dashboard_hackernews.png) |
+| ![Todo](https://raw.githubusercontent.com/palemoky/eink-dashboard/main/docs/screenshots/dashboard-todo.png) | ![HackerNews](https://raw.githubusercontent.com/palemoky/eink-dashboard/main/docs/screenshots/dashboard-hackernews.png) |
 
 ### 🥷 Other Modes
 | Quote | Poetry | Wallpaper |
