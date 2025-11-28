@@ -43,6 +43,6 @@ async def test_get_github_commits_fail():
         patch("src.config.Config.github.username", "testuser"),
         patch("src.config.Config.github.token", "fake_token"),
     ):
-        # Function should return 0 on error, not raise exception
+        # Function should return zeroed dict on error, not raise exception
         result = await get_github_commits(mock_client)
-        assert result == 0
+        assert result == {"day": 0, "month": 0, "year": 0}
