@@ -189,7 +189,7 @@ async def hackernews_pagination_task(epd, layout, dm, stop_event: asyncio.Event)
                     epd.init_part()
 
                 buffer = epd.getbuffer(full_img)
-                epd.display_Partial(
+                epd.display_partial_buffer(
                     buffer,
                     HN_REGION["x"],
                     HN_REGION["y"],

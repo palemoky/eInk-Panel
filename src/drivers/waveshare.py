@@ -68,11 +68,43 @@ class WaveshareEPDDriver:
         buffer = self.epd.getbuffer(image)
         self.epd.display(buffer)
 
-    def display_partial(self, image: Image.Image, x: int, y: int, w: int, h: int) -> None:
-        """Display a partial region of the screen.
+    def display_partial_buffer(
+        self, buffer, x_start: int, y_start: int, x_end: int, y_end: int
+    ) -> None:
+        """Perform partial display update using a pre-converted buffer.
+
+        This is a low-level method that directly calls the Waveshare display_Partial method.
+        Use this when you've already converted the image to a buffer for better performance.
 
         Args:
-            image: PIL Image to display (must be FULL SIZE 800x480)
+            buffer: Pre-converted buffer from getbuffer()
+            x_start: X coordinate of top-left corner
+            y_start: Y coordinate of top-left corner
+            x_end: X coordinate of bottom-right corner (not width!)
+            y_end: Y coordinate of bottom-right corner (not height!)
+        """
+        if hasattr(self.epd, "display_Partial"):
+            self.epd.display_Partial(buffer, x_start, y_start, x_end, y_end)
+        else:
+            logger.warning(f"Partial display not supported for {self.epd.__class__.__name__}")
+
+    def init_part(self) -> None:
+        """Initialize partial refresh mode if supported."""
+        if hasattr(self.epd, "init_part"):
+            self.epd.init_part()
+        else:
+            logger.warning(
+                f"Partial refresh initialization not supported for {self.epd.__class__.__name__}"
+            )
+
+    def display_partial(self, image: Image.Image, x: int, y: int, w: int, h: int) -> None:
+        """Display a partial region of the screen (high-level API).
+
+        This is the standard interface that accepts a PIL Image and automatically
+        converts it to a buffer. Use this for convenience.
+
+        Args:
+            image: PIL Image to display (must be FULL SIZE, e.g., 800x480)
             x: X coordinate of top-left corner of region to update
             y: Y coordinate of top-left corner of region to update
             w: Width of the region to update
