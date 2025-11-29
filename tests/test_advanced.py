@@ -1,5 +1,7 @@
 """Unit tests for advanced optimizations."""
 
+import asyncio
+
 import pytest
 
 from src.core.task_manager import TaskManager
@@ -21,6 +23,7 @@ class TestTaskManager:
             await stop_event.wait()
 
         await task_mgr.start("test", simple_task)
+        await asyncio.sleep(0.1)  # Give task time to execute
         assert await task_mgr.is_running("test")
         assert executed
 
@@ -55,9 +58,11 @@ class TestTaskManager:
 
         async with TaskManager() as task_mgr:
             await task_mgr.start("test", simple_task)
+            await asyncio.sleep(0.1)  # Give task time to execute
             assert executed
 
         # Should be cleaned up after context exit
+
         # (can't easily verify without keeping reference)
 
 

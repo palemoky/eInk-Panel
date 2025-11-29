@@ -1,48 +1,58 @@
 """Tests for data providers and API integrations."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+import os
+from unittest.mock import AsyncMock, MagicMock
 
 import httpx
 import pytest
 
-from src.providers.dashboard import get_github_commits, get_weather
+from src.providers.btc import get_btc_data
+from src.providers.dashboard import get_github_commits
 
 
 @pytest.mark.asyncio
-async def test_get_weather_success():
-    # Mock response
+async def test_get_btc_success():
+    """Test successful BTC price fetch."""
     mock_response = MagicMock()
     mock_response.status_code = 200
-    mock_response.json.return_value = {
-        "main": {"temp": 20.5},
-        "weather": [{"main": "Clouds"}],
-    }
+    mock_response.json.return_value = {"bitcoin": {"usd": 50000, "usd_24h_change": 2.5}}
     mock_response.raise_for_status = MagicMock()
 
-    # Mock client
     mock_client = AsyncMock(spec=httpx.AsyncClient)
     mock_client.get.return_value = mock_response
 
-    # Set API key temporarily - patch the grouped config
-    with patch("src.config.Config.api.openweather_api_key", "fake_key"):
-        data = await get_weather(mock_client)
-
-    assert data["temp"] == "20.5"
-    assert data["desc"] == "Clouds"
-    assert data["icon"] == "Clouds"
+    data = await get_btc_data(mock_client)
+    assert data == {"usd": 50000, "usd_24h_change": 2.5}
 
 
 @pytest.mark.asyncio
-async def test_get_github_commits_fail():
-    # Simulate network error
+async def test_get_github_commits_no_credentials():
+    """Test GitHub commits with no credentials returns zero dict."""
     mock_client = AsyncMock(spec=httpx.AsyncClient)
-    mock_client.post.side_effect = httpx.RequestError("Network Down", request=MagicMock())
 
-    # Patch the grouped config
-    with (
-        patch("src.config.Config.github.username", "testuser"),
-        patch("src.config.Config.github.token", "fake_token"),
-    ):
-        # Function should return zeroed dict on error, not raise exception
+    # Temporarily unset credentials
+    old_username = os.environ.get("GITHUB_USERNAME")
+    old_token = os.environ.get("GITHUB_TOKEN")
+
+    try:
+        if "GITHUB_USERNAME" in os.environ:
+            del os.environ["GITHUB_USERNAME"]
+        if "GITHUB_TOKEN" in os.environ:
+            del os.environ["GITHUB_TOKEN"]
+
+        # Reload config
+        from src import config
+
+        config.Config.model_rebuild()
+
         result = await get_github_commits(mock_client)
         assert result == {"day": 0, "week": 0, "month": 0, "year": 0}
+    finally:
+        # Restore
+        if old_username:
+            os.environ["GITHUB_USERNAME"] = old_username
+        if old_token:
+            os.environ["GITHUB_TOKEN"] = old_token
+        from src import config
+
+        config.Config.model_rebuild()

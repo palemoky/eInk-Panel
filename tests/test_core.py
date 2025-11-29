@@ -143,6 +143,14 @@ class TestCachedDecorator:
             call_count += 1
             return x * 2
 
+        # First call
+        result1 = await expensive_function(5)
+        assert result1 == 10
         assert call_count == 1
+
         await asyncio.sleep(0.1)  # Wait for expiration
+
+        # Second call - cache should be expired
+        result2 = await expensive_function(5)
+        assert result2 == 10
         assert call_count == 2  # Cache expired, function called again
