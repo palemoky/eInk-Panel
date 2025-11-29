@@ -15,7 +15,7 @@ def test_layout_creation(monkeypatch):
     # Mock data
     data = {
         "weather": {"temp": "20.0", "desc": "Sunny", "icon": "Clear"},
-        "github_commits": 10,
+        "github_commits": {"day": 5, "week": 23, "month": 90, "year": 860},
         "vps_usage": 50,
         "btc_price": {"usd": 50000, "usd_24h_change": 5.0},
         "week_progress": 75,
