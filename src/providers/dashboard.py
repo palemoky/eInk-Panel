@@ -462,14 +462,14 @@ class Dashboard:
         # Calculate week progress
         data["week_progress"] = get_week_progress()
 
-        # Fetch initial HackerNews data (reset to page 1 on startup)
+        # Fetch HackerNews data (preserve current page during refresh)
         from .hackernews import get_hackernews
 
         if self.client:
-            hn_data = await get_hackernews(self.client, reset_to_first=True)
+            hn_data = await get_hackernews(self.client, reset_to_first=False)
         else:
             async with httpx.AsyncClient() as client:
-                hn_data = await get_hackernews(client, reset_to_first=True)
+                hn_data = await get_hackernews(client, reset_to_first=False)
 
         # Store complete pagination data
         data["hackernews"] = hn_data
