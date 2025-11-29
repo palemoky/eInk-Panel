@@ -130,8 +130,8 @@ class DashboardLayout:
             center_x = int(start_x + (i * slot_width) + (slot_width / 2))
             self._draw_header_component(draw, center_x, self.TOP_Y, item)
 
-        # Draw divider line in light gray
-        line_color = self.renderer.COLOR_LIGHT_GRAY if Config.hardware.use_grayscale else 0
+        # Draw divider line in dark gray
+        line_color = self.renderer.COLOR_DARK_GRAY if Config.hardware.use_grayscale else 0
         draw.line((30, self.LINE_TOP_Y, width - 30, self.LINE_TOP_Y), fill=line_color, width=2)
 
     def _draw_header_component(self, draw, center_x, top_y, item_data):
@@ -364,8 +364,8 @@ class DashboardLayout:
                 self.COLS[2]["max_w"],
             )
 
-        # Draw divider line in light gray
-        line_color = self.renderer.COLOR_LIGHT_GRAY if Config.hardware.use_grayscale else 0
+        # Draw divider line in dark gray
+        line_color = self.renderer.COLOR_DARK_GRAY if Config.hardware.use_grayscale else 0
         draw.line(
             (30, self.LINE_BOTTOM_Y, draw.im.size[0] - 30, self.LINE_BOTTOM_Y),
             fill=line_color,
@@ -443,8 +443,8 @@ class DashboardLayout:
                 fill=0,
             )
 
-        # Draw divider line in light gray
-        line_color = self.renderer.COLOR_LIGHT_GRAY if Config.hardware.use_grayscale else 0
+        # Draw divider line in dark gray
+        line_color = self.renderer.COLOR_DARK_GRAY if Config.hardware.use_grayscale else 0
         draw.line(
             (30, self.LINE_BOTTOM_Y, width - 30, self.LINE_BOTTOM_Y),
             fill=line_color,
