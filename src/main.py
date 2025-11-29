@@ -103,7 +103,7 @@ def is_in_time_slots(time_slots_str: str) -> bool:
     """Check if current hour is within the specified time slots.
 
     Args:
-        time_slots_str: Time slots string (e.g., "0-12,18-24")
+        time_slots_str: Time slots string (e.g., "0-12,18-24" or "20-8" for cross-day)
 
     Returns:
         True if current hour is within any of the time slots
@@ -114,15 +114,23 @@ def is_in_time_slots(time_slots_str: str) -> bool:
     now = pendulum.now(Config.hardware.timezone)
     current_hour = now.hour
 
-    # Parse time slots (format: "0-12,18-24")
+    # Parse time slots (format: "0-12,18-24" or "20-8" for cross-day)
     try:
         slots = time_slots_str.split(",")
         for slot in slots:
             slot = slot.strip()
             if "-" in slot:
                 start, end = map(int, slot.split("-"))
-                if start <= current_hour < end:
-                    return True
+
+                # Handle cross-day ranges (e.g., "20-8" means 8pm to 8am next day)
+                if start > end:
+                    # Cross-day: check if hour >= start OR hour < end
+                    if current_hour >= start or current_hour < end:
+                        return True
+                else:
+                    # Same-day: check if start <= hour < end
+                    if start <= current_hour < end:
+                        return True
     except Exception as e:
         logger.warning(f"Failed to parse time slots '{time_slots_str}': {e}")
         return False
