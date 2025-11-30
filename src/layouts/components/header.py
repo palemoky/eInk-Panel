@@ -128,7 +128,7 @@ class HeaderComponent:
                 r.draw_centered_text(
                     draw,
                     center_x,
-                    top_y + 50,
+                    top_y + 40,
                     month_year,
                     font=r.font_s,
                     align_y_center=False,

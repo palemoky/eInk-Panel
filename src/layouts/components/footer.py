@@ -136,7 +136,7 @@ class FooterComponent:
                 center_x - offset_x,
                 self.FOOTER_CENTER_Y - offset_y,
                 str(value["day"]),
-                font=r.font_s,
+                font=r.font_commits,
                 align_y_center=True,
             )
 
@@ -146,7 +146,7 @@ class FooterComponent:
                 center_x + offset_x,
                 self.FOOTER_CENTER_Y - offset_y,
                 str(value["week"]),
-                font=r.font_s,
+                font=r.font_commits,
                 align_y_center=True,
             )
 
@@ -156,7 +156,7 @@ class FooterComponent:
                 center_x - offset_x,
                 self.FOOTER_CENTER_Y + offset_y,
                 str(value["month"]),
-                font=r.font_s,
+                font=r.font_commits,
                 align_y_center=True,
             )
 
@@ -166,7 +166,7 @@ class FooterComponent:
                 center_x + offset_x,
                 self.FOOTER_CENTER_Y + offset_y,
                 str(value["year"]),
-                font=r.font_s,
+                font=r.font_commits,
                 align_y_center=True,
             )
 
