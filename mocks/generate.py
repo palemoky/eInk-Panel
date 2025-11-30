@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Script to generate mock images for debugging layouts.
-Usage: python3 scripts/generate_mock_image.py --mode [dashboard|holiday|year_end|quote|poetry] [--holiday NAME] [--output filename.png]
+Usage: python -m mocks.generate --mode [dashboard|holiday|year_end|quote|poetry] [--holiday NAME] [--output filename.png]
 """
 
 import argparse
