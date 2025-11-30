@@ -4,6 +4,7 @@ Fetches 50 best stories from Hacker News API, caches them, and provides
 paginated access with automatic page rotation.
 """
 
+import asyncio
 import logging
 
 import httpx
@@ -41,23 +42,37 @@ async def _fetch_all_stories(client: httpx.AsyncClient) -> list[HackerNewsStory]
     try:
         logger.info("Fetching Hacker News best stories...")
 
-        # Fetch ALL story IDs (no limit)
+        # Fetch ALL story IDs
         response = await client.get(HN_BEST_STORIES_URL, timeout=10.0)
         response.raise_for_status()
         story_ids = response.json()
 
-        logger.info(f"Fetched {len(story_ids)} HN story IDs")
+        # Limit to top 50 stories to avoid fetching too much data
+        # 50 stories = 10 pages of 5 stories each, which is plenty
+        limit = 50
+        story_ids = story_ids[:limit]
 
-        # Fetch details for ALL stories
+        logger.info(f"Fetching details for top {len(story_ids)} HN stories...")
+
+        # Use a semaphore to limit concurrent requests
+        sem = asyncio.Semaphore(10)
+
+        async def fetch_with_sem(sid: int) -> dict | None:
+            async with sem:
+                return await _fetch_story(client, sid)
+
+        # Fetch stories concurrently
+        results = await asyncio.gather(*[fetch_with_sem(sid) for sid in story_ids])
+
+        # Process results
         stories: list[HackerNewsStory] = []
-        for story_id in story_ids:
-            story = await _fetch_story(client, story_id)
+        for i, story in enumerate(results):
             if not story:
                 continue
 
             stories.append(
                 {
-                    "id": story_id,
+                    "id": story_ids[i],
                     "title": story.get("title", ""),
                     "score": story.get("score", 0),
                 }
