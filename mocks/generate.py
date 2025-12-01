@@ -88,6 +88,7 @@ def generate_mock_image(mode, holiday_name=None, output_file="debug_output.png")
         quote_layout = QuoteLayout()
         image = quote_layout.create_quote_image(epd.width, epd.height, data["quote"])
 
+    elif mode == "poetry":
         from src.layouts.poetry import PoetryLayout
 
         # Define all poetry data functions to generate
