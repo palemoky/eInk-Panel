@@ -71,7 +71,7 @@ ENV PATH="/app/.venv/bin:$PATH"
 # 4. 复制源代码（排除 fonts 目录以减小镜像体积）
 COPY src ./src
 COPY resources ./resources
-COPY pyproject.toml uv.lock README.md LICENSE ./
+COPY pyproject.toml uv.lock ./
 
 # 5. 环境变量与配置
 ENV PYTHONPATH=/app
