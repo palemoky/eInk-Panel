@@ -26,13 +26,13 @@ class YearEndSummaryComponent:
     CONTRIB_Y = 140
     CONTRIB_LABEL_X = 180
     CONTRIB_VALUE_X = 470
-    CONTRIB_VALUE_Y_OFFSET = -10
+    CONTRIB_VALUE_Y_OFFSET = 0
 
     LANG_Y = 210
     LANG_LABEL_X = 180
     LANG_ICONS_START_X = 450
     LANG_ICON_SPACING = 70
-    LANG_ICON_SIZE = 50
+    LANG_ICON_SIZE = 30
     LANG_ICON_Y_OFFSET = 20
 
     STATS_Y = 300
@@ -126,7 +126,7 @@ class YearEndSummaryComponent:
             self.CONTRIB_VALUE_X,
             self.CONTRIB_Y + self.CONTRIB_VALUE_Y_OFFSET,
             str(total),
-            font=self.renderer.font_l,
+            font=self.renderer.font_m,
         )
 
     def _draw_languages(self, draw: ImageDraw.ImageDraw, data: dict[str, Any]) -> None:
