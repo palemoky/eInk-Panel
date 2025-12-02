@@ -78,6 +78,7 @@ class HeaderComponent:
                     top_y,
                     f"{Config.CITY_NAME} {data.get('temp', '--')}°",
                     font=r.font_m,
+                    fill=r.COLOR_BLACK,
                     align_y_center=False,
                 )
 
@@ -117,7 +118,7 @@ class HeaderComponent:
                 text_x = start_x + icon_size + 2
 
                 r.draw_weather_icon(draw, icon_x, icon_y, icon_name, size=icon_size)
-                draw.text((text_x, icon_y - 16), desc, font=r.font_s, fill=0)
+                draw.text((text_x, icon_y - 16), desc, font=r.font_s, fill=r.COLOR_BLACK)
 
             case "date":
                 data = item_data["data"]
@@ -129,6 +130,7 @@ class HeaderComponent:
                     top_y,
                     f"{weekday}, {day}",
                     font=r.font_date_big,
+                    fill=r.COLOR_BLACK,
                     align_y_center=False,
                 )
 
@@ -139,6 +141,7 @@ class HeaderComponent:
                     top_y + 40,
                     month_year,
                     font=r.font_s,
+                    fill=r.COLOR_BLACK,
                     align_y_center=False,
                 )
 
@@ -150,6 +153,7 @@ class HeaderComponent:
                     top_y,
                     "Updated",
                     font=r.font_s,
+                    fill=r.COLOR_BLACK,
                     align_y_center=False,
                 )
                 r.draw_centered_text(
@@ -158,6 +162,7 @@ class HeaderComponent:
                     top_y + 35,
                     data.strftime("%H:%M"),
                     font=r.font_m,
+                    fill=r.COLOR_BLACK,
                     align_y_center=False,
                 )
 
@@ -168,6 +173,7 @@ class HeaderComponent:
                     top_y,
                     Config.GREETING_LABEL,
                     font=r.font_m,
+                    fill=r.COLOR_BLACK,
                     align_y_center=False,
                 )
                 r.draw_centered_text(
@@ -176,6 +182,7 @@ class HeaderComponent:
                     top_y + 35,
                     Config.GREETING_TEXT,
                     font=r.font_m,
+                    fill=r.COLOR_BLACK,
                     align_y_center=False,
                 )
 
@@ -186,6 +193,7 @@ class HeaderComponent:
                     top_y,
                     item_data["label"],
                     font=r.font_s,
+                    fill=r.COLOR_BLACK,
                     align_y_center=False,
                 )
                 r.draw_centered_text(
@@ -194,5 +202,6 @@ class HeaderComponent:
                     top_y + 35,
                     item_data["value"],
                     font=r.font_value,
+                    fill=r.COLOR_BLACK,
                     align_y_center=False,
                 )
