@@ -58,7 +58,6 @@ docker-compose up -d
 
 ### Supported Platforms
 
-- `linux/amd64` - x86_64 PCs
 - `linux/arm64` - Raspberry Pi 3/4/5 (64-bit)
 
 ## ✨ Features
@@ -545,4 +544,12 @@ MIT License - Copyright © 2025 Palemoky
 ## 🙏 Acknowledgments
 
 - [Waveshare](https://www.waveshare.com/) for E-Ink display drivers
+- [Chinese Poetry](https://github.com/chinese-poetry/chinese-poetry) for poetry
+- [LxgwWenKai](https://github.com/lxgw/LxgwWenKai) for font
+- [Hanyi](https://hanyi.com.cn/) for font
+- [Flaticon](https://www.flaticon.com/) for icons
+- [Figma](https://www.figma.com/) for UI design
+- [CoinGecko](https://www.coingecko.com/) for BTC price
+- [OpenWeatherMap](https://openweathermap.org/) for weather
+- [HackerNews](https://news.ycombinator.com/) for HackerNews
 - All the open-source libraries that make this project possible
