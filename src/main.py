@@ -234,8 +234,12 @@ async def main():
             fetcher = DataFetcher(dm)
             builder = ImageBuilder(epd.width, epd.height)
 
-            # Reset HackerNews pagination on startup
-            await get_hackernews(dm.client, reset_to_first=True)
+            # Reset HackerNews pagination on startup only if in HackerNews time slot
+            now = pendulum.now(Config.hardware.timezone)
+            show_hn = not todo_slots.contains_hour(now.hour)
+            if show_hn:
+                await get_hackernews(dm.client, reset_to_first=True)
+                logger.info("🔄 Reset HackerNews pagination on startup")
 
             # Main loop
             while True:
