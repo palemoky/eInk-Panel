@@ -108,6 +108,106 @@ docker-compose up -d
 - **Type Checking** - mypy validation
 - **Code Quality** - Ruff linting
 
+## 🏛️ System Architecture
+
+The E-Ink Dashboard follows a modular, event-driven architecture with clear separation of concerns:
+
+```mermaid
+flowchart LR
+    %% --- Style Definition ---
+    classDef control fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
+    classDef data fill:#f3e5f5,stroke:#4a148c,stroke-width:2px;
+    classDef render fill:#fff3e0,stroke:#e65100,stroke-width:2px;
+    classDef hw fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px;
+    classDef subBox fill:#ffffff,stroke:#90a4ae,stroke-width:1px,stroke-dasharray: 5 5;
+
+    %% --- 1. Control Layer ---
+    subgraph ControlLayer ["🎮 Core & Control"]
+        direction TB
+        Main("Main Orchestrator")
+        Config("Config & Hot Reload")
+        DisplayCtrl{{"Display Controller"}}
+        TaskMgr("Task Manager")
+    end
+
+    %% --- 2. Data Layer ---
+    subgraph DataLayer ["📡 Data Acquisition"]
+        direction TB
+        Fetcher("Data Fetcher")
+
+        subgraph Providers ["Providers"]
+            External["External APIs<br/>(Weather, GitHub, BTC, HN)"]
+            Local["Local Info<br/>(Quotes, Poetry, TODO)"]
+        end
+
+        subgraph Storage ["State Management"]
+            Cache[("Cache (TTL/LRU)")]
+            State[("Persistence DB")]
+        end
+    end
+
+    %% --- 3. Render Layer ---
+    subgraph RenderLayer ["🎨 Rendering Engine"]
+        direction TB
+        ImgBuilder("Image Builder")
+
+        subgraph Strategies ["Layout Strategies"]
+            DashLayout["Dashboard Layout"]
+            ContextLayouts["Context Layouts<br/>(Holiday, Quote, Poetry)"]
+        end
+
+        Renderer["Primitive Renderers<br/>(Text, Icons, Shapes)"]
+    end
+
+    %% --- 4. Hardware Layer ---
+    subgraph HWLayer ["🖥️ Hardware Output"]
+        direction TB
+        DriverFac("Driver Factory")
+        EPD["E-Paper Driver"]
+        Mock["Mock (PNG)"]
+    end
+
+    %% --- Connection Logic ---
+    %% Control Flow
+    Main --> Config & TaskMgr
+    Main --> DisplayCtrl
+    Config -.-> Main
+
+    %% Data Flow
+    Main --"Trigger"--> Fetcher
+    Fetcher --> External & Local
+    External & Local -.-> Storage
+
+    %% Render Flow
+    DisplayCtrl --"Select Mode"--> ImgBuilder
+    ImgBuilder --"Get Data"--> Storage
+    ImgBuilder --> DashLayout & ContextLayouts
+    DashLayout & ContextLayouts --> Renderer
+
+    %% Output Flow
+    Renderer --> DriverFac
+    DriverFac --> EPD & Mock
+
+    %% --- Application Style ---
+    class Main,Config,DisplayCtrl,TaskMgr control
+    class Fetcher,External,Local,Cache,State data
+    class ImgBuilder,DashLayout,ContextLayouts,Renderer render
+    class DriverFac,EPD,Mock hw
+    class Providers,Storage,Strategies subBox
+```
+
+### Architecture Highlights
+
+- **🔄 Async-First**: Built on `asyncio` with `httpx` for concurrent API calls
+- **🎯 Single Responsibility**: Each module has a focused purpose
+- **🔌 Plugin System**: Display modes are pluggable and extensible
+- **💾 Smart Caching**: TTL-based cache with LRU eviction reduces API calls
+- **📡 Event-Driven**: Event bus enables loose coupling between components
+- **🔧 Hot Reload**: Configuration changes trigger immediate refresh without restart
+- **🛡️ Type Safety**: Full type hints validated by mypy
+- **🔁 Retry Logic**: Automatic retry with exponential backoff using `tenacity`
+- **🎭 Mock Support**: Mock driver for development without hardware
+
 ## 🖥️ Hardware Support
 
 - **Primary**: Waveshare 7.5inch E-Paper HAT (V2)
