@@ -4,8 +4,8 @@ This module provides decorators and utilities for monitoring function execution 
 memory usage, and other performance metrics.
 """
 
-import asyncio
 import functools
+import inspect
 import logging
 import time
 from typing import Any, Callable, TypeVar
@@ -46,7 +46,7 @@ def measure_time(func: F) -> F:
             elapsed = time.perf_counter() - start_time
             logger.info(f"⏱️  {func.__name__} took {elapsed:.3f}s")
 
-    if asyncio.iscoroutinefunction(func):
+    if inspect.iscoroutinefunction(func):
         return async_wrapper  # type: ignore
     else:
         return sync_wrapper  # type: ignore
@@ -89,7 +89,7 @@ def log_slow_operations(threshold_seconds: float = 1.0):
                 )
             return result
 
-        if asyncio.iscoroutinefunction(func):
+        if inspect.iscoroutinefunction(func):
             return async_wrapper  # type: ignore
         else:
             return sync_wrapper  # type: ignore
