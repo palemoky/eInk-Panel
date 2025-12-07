@@ -74,8 +74,8 @@ docker-compose up -d
 - **Bitcoin Price** - Live BTC price with 24h change percentage
 - **VPS Data Usage** - Monitor your server's data consumption
 - **Weekly Progress** - Visual progress ring for the current week
-- **Custom To-Do Lists** - Three customizable lists (Goals/Must/Optional)
-- **HackerNews** - Auto-rotating top stories with pagination
+- **Custom To-Do Lists** - Three customizable lists (Goals/Must/Optional) with strikethrough for completed items
+- **HackerNews** - Auto-rotating top stories with pagination and configurable display time
 
 ### 🎨 Display Modes
 - **Dashboard** - Main information display with time-based TODO/HN switching
@@ -93,7 +93,8 @@ docker-compose up -d
   - New Year's Day & Christmas
 - **Time-based Switching** - Configurable time slots for TODO lists vs HackerNews
 - **Quiet Hours** - Configurable sleep period (e.g., 1 AM - 6 AM)
-- **Grayscale Support** - 4-level grayscale for supported displays
+- **Grayscale Support** - 4-level grayscale for enhanced visual quality (white/light gray/dark gray/black)
+- **Audio Notifications** - Xiaomi speaker integration for alerts and announcements
 
 ### 🏗️ Modern Architecture
 - **Async/Await** - Built with `asyncio` and `httpx` for concurrent operations
@@ -108,11 +109,13 @@ docker-compose up -d
 - **Graceful Shutdown** - Proper SIGTERM/SIGINT handling
 
 ### 🧪 Quality & Testing
-- **Unit Tests** - 66% coverage
+- **Unit Tests** - 90+ tests with 66% overall coverage
 - **Core Modules** - 77%+ coverage on critical components
-- **CI/CD** - Automated testing and Docker builds
-- **Type Checking** - mypy validation
-- **Code Quality** - Ruff linting
+- **CI/CD** - Automated testing, type checking, and Docker builds via GitHub Actions
+- **Type Checking** - Full mypy validation with strict mode
+- **Code Quality** - Ruff linting and formatting
+- **Pre-commit Hooks** - Automated code quality checks before commits
+- **Mock System** - CLI tool for generating test images without hardware
 
 ## 🏛️ System Architecture
 
